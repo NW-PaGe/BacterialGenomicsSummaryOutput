@@ -1,0 +1,203 @@
+---
+title: "Bacterial Genomics - Summary Report"
+date: today
+author: 
+  - name: "Marcela Torres <br> Dahlia Walters"
+    affiliation: "Molecular Epidemiolgy Program, WA DOH"
+format: 
+  html:
+    self-contained: true
+---
+
+```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(lubridate)
+library(tools)
+```
+
+```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}
+source("scripts/load_files.R")
+source("scripts/summarytsv_outputs.R")
+source("scripts/SNP_min_max.R")
+source("scripts/metadata_summarytsv.R")
+```
+
+## Overview New Samples
+
+These are `r nrow(newseq)` new sequencing results in this BigBacter run.
+
+```{r echo = FALSE}
+outputs_script_dir <- "outputs_scripts"
+
+newseq_file <- list.files(outputs_script_dir, pattern = "newseq.RData$", full.names = TRUE)
+
+loaded_newseq <- load(newseq_file[1])
+
+summary_new_seq <- bind_rows(get(loaded_newseq[1]))
+
+#Table attributes
+kable(summary_new_seq) %>%
+  kable_styling(
+    bootstrap_options = c("striped"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+
+```
+
+Of those, the following isolates resulted in new genetic clusters.
+
+```{r echo = FALSE}
+#Identify samples that resulted in new clusters
+new_clust<-newseq %>% 
+  filter(ISO_IN_CLUSTER==1)
+
+#Table attributes
+kable(new_clust) %>%
+  kable_styling(
+    bootstrap_options = c("striped"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+```
+
+## Recombination
+
+Recombination is evaluated in multiple ways. First the number of sites where recombination was detected is divided by the total length of the core genome. If recombination is more than 5% in a genomic cluster, or if recombination is more than 1% and the Snippy and Gubbins outputs yield different interpretations, then the Gubbins outputs are used for the summary table and for the interpretations.
+
+```{r echo = FALSE}
+outputs_script_dir <- "outputs_scripts"
+
+recomb_file <- list.files(outputs_script_dir, pattern = "recomb_summary.RData$", full.names = TRUE)
+
+loaded_summary_recomb <- load(recomb_file[1])
+
+summary_recomb <- bind_rows(get(loaded_summary_recomb[1]))
+
+#Table attributes
+kable(summary_recomb) %>%
+  kable_styling(
+    bootstrap_options = c("striped"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+
+```
+
+*Sequences that resulted in new genetic clusters are excluded from this calculation.*
+
+## SNP Min and Max Distances
+
+The minimum and maximum SNP distances for each genomic cluster by each method, Snippy and Gubbins, are summarized below
+
+```{r echo = FALSE}
+outputs_script_dir <- "outputs_scripts"
+
+snpminmax_file <- list.files(outputs_script_dir, pattern = "summary_snp_minmax.RData$", full.names = TRUE)
+
+loaded_snp_minmax <- load(snpminmax_file[1])
+
+summary_snp <- bind_rows(get(loaded_snp_minmax[1]))
+
+#Table attributes
+kable(summary_snp) %>%
+  kable_styling(
+    bootstrap_options = c("striped"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+
+```
+
+*Sequences that resulted in new genetic clusters are excluded from this calculation.*
+
+## Failed Isolates
+
+The following isolates failed quality control.
+
+```{r echo = FALSE}
+outputs_script_dir <- "outputs_scripts"
+
+failed_file <- list.files(outputs_script_dir, pattern = "failed.RData$", full.names = TRUE)
+
+loaded_failed <- load(failed_file[1])
+
+failed_df <- bind_rows(get(loaded_failed[1]))
+
+#Table attributes
+kable(failed_df) %>%
+  kable_styling(
+    bootstrap_options = c("striped"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+
+```
+
+## Metadata
+
+This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates.
+
+```{r echo = FALSE}
+
+results_dir <- "metadata_summ"
+
+rdata_files <- list.files(results_dir, pattern = "\\.RData$", full.names = TRUE)
+
+#Empty list to store all data frames
+all_data <- list()
+
+#Load and collect each data frame
+for (file in rdata_files) {
+  load(file)
+  file_name <- file_path_sans_ext(basename(file))
+  
+  #Add a new column to the data frame with the file name
+  combined_df <- combined_df %>%
+    mutate(Taxa_GenomicCluster = file_name)%>%
+    select(Taxa_GenomicCluster, everything())
+  
+  #Store the modified data frame in the list
+  all_data[[file_name]] <- combined_df
+}
+
+#Bind all the data frames into one combined data frame
+final_metadata <- bind_rows(all_data)
+
+#Table attributes
+kable(final_metadata) %>%
+  kable_styling(
+    bootstrap_options = c("striped"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 10,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+
+```
+
+## Resources
+
+The following bioinformatics methods were used by WA PHL to generate some of the data summarized in this report.\
+BigBacter bioinformatics pipeline <https://github.com/doh-jdj0303/bigbacter-nf>\
+Snippy <https://github.com/tseemann/snippy>\
+Gubbins <https://github.com/nickjcroucher/gubbins>

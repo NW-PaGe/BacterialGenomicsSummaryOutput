@@ -19,6 +19,8 @@ current_run_summary<-summary_tsv %>%
 
 bacteriamastermeta_summ<-wabacteriamaster_meta_df %>% 
   mutate(BigBacter_Status='STATUS') %>% 
+  mutate(CollectionDate=format(as.Date(CollectionDate,"%Y-%m-%d"),"%m-%d-%Y")) %>%
+  mutate(DOB=format(as.Date(DOB,"%Y-%m-%d"),"%m-%d-%Y")) %>%
   select(ID,
          WA_ID,
          CASE_ID,

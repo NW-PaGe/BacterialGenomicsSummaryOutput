@@ -17,10 +17,10 @@ current_run_summary<-summary_tsv %>%
          ISO_IN_CLUSTER,
          ISO_PASS_QC)
 
-bacteriamastermeta_summ<-wabacteriamaster_meta_df %>% 
+bacteriamastermeta_summ<-wabacteriamaster_meta_df %>%
+  mutate(CollectionDate=as.Date(CollectionDate, format = "%Y-%m-%d")) %>%
+  mutate(DOB=as.Date(DOB, format = "%Y-%m-%d")) %>%
   mutate(BigBacter_Status='STATUS') %>% 
-  mutate(CollectionDate=format(as.Date(CollectionDate,"%Y-%m-%d"),"%m-%d-%Y")) %>%
-  mutate(DOB=format(as.Date(DOB,"%Y-%m-%d"),"%m-%d-%Y")) %>%
   select(ID,
          WA_ID,
          CASE_ID,
@@ -34,6 +34,7 @@ bacteriamastermeta_summ<-wabacteriamaster_meta_df %>%
          SubmitterCounty,
          SubmitterName,
          SpecimenSource)
+
 
 #Add the metadata to the selected information from the summary tsv so the resulting dataframe only pertains
 #to the current run
@@ -56,6 +57,7 @@ current_run_metadata<-left_join(current_run_summary, bacteriamastermeta_summ, by
          SubmitterCounty,
          SubmitterName,
          SpecimenSource)
+
 
 #Group the df by species and then by cluster and split into different dfs
 metadata_grouped <- current_run_metadata %>% 
@@ -80,9 +82,9 @@ for (i in seq_along(metadata_grouped)) {
 results <- lapply(metadata_grouped, function(df) {
   
   #Calculate min and max collection dates
-  min_date <- min(df$CollectionDate, na.rm = TRUE)
-  max_date <- max(df$CollectionDate, na.rm = TRUE)
-  
+  min_date <- format(min(df$CollectionDate, na.rm = TRUE), format = "%m-%d-%Y")
+  max_date <- format(max(df$CollectionDate, na.rm = TRUE), format = "%m-%d-%Y")
+
   #Extract ID and WA_ID of the new isolates
   new_IDs <- df %>%
     filter(STATUS == "NEW", !is.na(ID), !is.na(WA_ID)) %>%

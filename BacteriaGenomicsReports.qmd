@@ -139,16 +139,19 @@ loaded_failed <- load(failed_file[1])
 
 failed_df <- bind_rows(get(loaded_failed[1]))
 
-#Table attributes
-kable(failed_df) %>%
-  kable_styling(
-    bootstrap_options = c("striped"),
-    full_width = FALSE,
-    position = "left",
-    font_size = 12,
-    html_font = "Arial"
-  ) %>%
-  row_spec(0, bold = TRUE)
+if (nrow(failed_df) > 0) {
+  kable(failed_df) %>%
+    kable_styling(
+      bootstrap_options = c("striped"),
+      full_width = FALSE,
+      position = "left",
+      font_size = 12,
+      html_font = "Arial"
+    ) %>%
+    row_spec(0, bold = TRUE)
+} else {
+  message("There weren't any isolates that failed in this run")
+}
 
 ```
 

@@ -83,16 +83,20 @@ loaded_summary_recomb <- load(recomb_file[1])
 
 summary_recomb <- bind_rows(get(loaded_summary_recomb[1]))
 
-#Table attributes
-kable(summary_recomb) %>%
-  kable_styling(
-    bootstrap_options = c("striped"),
-    full_width = FALSE,
-    position = "left",
-    font_size = 12,
-    html_font = "Arial"
-  ) %>%
-  row_spec(0, bold = TRUE)
+
+if (nrow(summary_recomb) > 0) {
+  kable(summary_recomb) %>%
+    kable_styling(
+      bootstrap_options = c("striped"),
+      full_width = FALSE,
+      position = "left",
+      font_size = 12,
+      html_font = "Arial"
+    ) %>%
+    row_spec(0, bold = TRUE)
+} else {
+  message("Recombination wasn't calculated")
+}
 
 ```
 
@@ -111,16 +115,19 @@ loaded_snp_minmax <- load(snpminmax_file[1])
 
 summary_snp <- bind_rows(get(loaded_snp_minmax[1]))
 
-#Table attributes
-kable(summary_snp) %>%
-  kable_styling(
-    bootstrap_options = c("striped"),
-    full_width = FALSE,
-    position = "left",
-    font_size = 12,
-    html_font = "Arial"
-  ) %>%
-  row_spec(0, bold = TRUE)
+if (nrow(summary_snp) > 0) {
+  kable(summary_snp) %>%
+    kable_styling(
+      bootstrap_options = c("striped"),
+      full_width = FALSE,
+      position = "left",
+      font_size = 12,
+      html_font = "Arial"
+    ) %>%
+    row_spec(0, bold = TRUE)
+} else {
+  message("SNP distances weren't calculated")
+}
 
 ```
 

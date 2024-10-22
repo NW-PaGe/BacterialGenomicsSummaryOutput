@@ -18,6 +18,7 @@ current_run_summary<-summary_tsv %>%
          ISO_PASS_QC)
 
 bacteriamastermeta_summ<-wabacteriamaster_meta_df %>%
+  filter(ASSEMBLY_QC!='FAIL') %>% 
   mutate(CollectionDate=as.Date(CollectionDate, format = "%Y-%m-%d")) %>%
   mutate(DOB=as.Date(DOB, format = "%Y-%m-%d")) %>%
   mutate(BigBacter_Status='STATUS') %>% 

@@ -108,11 +108,15 @@ results <- lapply(metadata_grouped, function(df) {
   same_dob <- df %>%
     group_by(DOB) %>%
     filter(n() > 1 & !is.na(DOB)) %>%
-    select(ID, WA_ID, DOB)
+    select(ID, WA_ID, DOB)%>%
+    summarise(IDs = paste(ID, collapse = ", "), WA_IDs = paste(WA_ID, collapse = ", "))
   
   #Format the duplicate DOB results
   if (nrow(same_dob) > 0) {
-    duplicate_dob_str <- paste(same_dob$ID, same_dob$WA_ID, collapse = "; ")
+    duplicate_dob_str <- paste(
+      paste0("DOB: ",  same_dob$DOB, " IDs: ",  same_dob$IDs, " WA_IDs: ",  same_dob$WA_IDs),
+      collapse = paste0(";\n")
+    )
   } else {
     duplicate_dob_str <- "No isolates from the same case"
   }

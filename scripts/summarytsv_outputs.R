@@ -9,7 +9,10 @@ if (!dir.exists(outputs_script_dir)) {
 
 ##OVERVIEW NEW SEQUENCES
 #Identify new results to get an overview of the new sequences
-newseq<-summary_tsv %>% 
+newseq<-summary_tsv %>%
+  mutate(ID = ifelse(str_starts(ID,"WA"),
+                     str_remove(ID, "_T1$"),
+                     ID)) %>%
   filter(STATUS=="NEW") %>%
   mutate(GENOMIC_CLUSTER=CLUSTER) %>% 
   select(ID,

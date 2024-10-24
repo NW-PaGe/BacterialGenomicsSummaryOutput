@@ -164,7 +164,7 @@ if (nrow(failed_df) > 0) {
 
 ## Metadata
 
-This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates.
+This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates. The facilities are the submitting facilities and the counties the submitting facilities' county.
 
 ```{r echo = FALSE}
 

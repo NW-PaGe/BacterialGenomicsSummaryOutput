@@ -107,6 +107,15 @@ results <- lapply(metadata_grouped, function(df) {
                            filter(STATUS == "NEW") %>%
                            select(SubmitterCounty)))
   
+  #Extract unique submitting facilities' names from Submitter facility
+  all_names <- unique(na.omit(df$SubmitterName))
+  
+  #Extract unique submitting facilities' names where STATUS is NEW
+  new_names <- unique(na.omit(df %>%
+                                   filter(STATUS == "NEW") %>%
+                                   select(SubmitterName)))
+  
+  
   #Identify isolates from cases with the same DOB and extract their ID and WA_ID
   same_dob <- df %>%
     group_by(DOB) %>%
@@ -125,12 +134,16 @@ results <- lapply(metadata_grouped, function(df) {
   }
   
   
-  
   #Limit All_IDs to no more than 10
+  #If the run only has WA IDs comment out the two lines (140,144) all_ids$ID
   if (nrow(all_ids) > 10) {
-    all_ids_str <- paste(paste(all_ids$ID[1:10], all_ids$WA_ID[1:10], collapse = "; "), "Limited output to 10 IDs, but there are more isolates in this genetic cluster")
+    all_ids_str <- paste(paste(all_ids$ID[1:10], 
+                               all_ids$WA_ID[1:10], 
+                               collapse = "; "), "Limited output to 10 IDs, but there are more isolates in this genetic cluster")
   } else {
-    all_ids_str <- paste(all_ids$ID, all_ids$WA_ID, collapse = "; ")
+    all_ids_str <- paste(all_ids$ID, 
+                         all_ids$WA_ID, 
+                         collapse = "; ")
   }
   
   #Create a data frame for the combined results
@@ -139,12 +152,17 @@ results <- lapply(metadata_grouped, function(df) {
     Max_CollDate = max_date,
     All_Counties = paste(all_counties, collapse = ", "),
     New_Counties = paste(new_counties, collapse = ", "),
+    All_Facilities = paste(all_names, collapse = ", "),
+    New_Facilities = paste(new_names, collapse = ", "),
     stringsAsFactors = FALSE
   )
   
   #Attach New Status Data and All IDs as separate columns
+  #If the run only has WA IDs comment out the line new_IDs$ID
   combined_df$All_IDs <- all_ids_str 
-  combined_df$New_IDs <- paste(new_IDs$ID, new_IDs$WA_ID, collapse = "; ")
+  combined_df$New_IDs <- paste(new_IDs$ID, 
+                               new_IDs$WA_ID, 
+                               collapse = "; ")
   combined_df$ISOs_SameCase = duplicate_dob_str
 
   

@@ -72,7 +72,9 @@ kable(new_clust) %>%
 
 ## Recombination
 
-Recombination is evaluated in multiple ways. First the number of sites where recombination was detected is divided by the total length of the core genome. If recombination is more than 5% in a genomic cluster, or if recombination is more than 1% and the Snippy and Gubbins outputs yield different interpretations, then the Gubbins outputs are used for the summary table and for the interpretations.
+Bacterial recombination is the process where bacteria exchange genetic material with each other which leads to the gain of new DNA sequences into their genomes.  It is important to be aware of recombination when conducting genomic analyses because recombination events can be confused with mutations events which can impact metrics used to characterize relationships between sequences, such as calculating single nucleotide polymorphisms (SNP) distances. The bioinformatics pipelines developed at WA PHL use Gubbins, a method to detect and control for recombination. If recombination is detected the sites where recombination is present are masked in the SNPs distance calculations and in the phylogenetic trees. 
+
+We evaluate recombination in multiple ways. First the number of sites where recombination was detected is divided by the total length of the core genome. If recombination is more than 5% in a genomic cluster, or if recombination is more than 1% and the Snippy and Gubbins outputs yield different interpretations, then the Gubbins outputs are used for the summary table and for the interpretations.
 
 ```{r echo = FALSE}
 outputs_script_dir <- "outputs_scripts"

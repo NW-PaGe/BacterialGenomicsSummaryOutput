@@ -208,6 +208,7 @@ kable(final_metadata) %>%
 ```
 
 ## Resources
+The code to generate this report is available here <https://github.com/NW-PaGe/BacterialGenomicsSummaryOutput>\
 
 The following bioinformatics methods were used by WA PHL to generate some of the data summarized in this report.\
 BigBacter bioinformatics pipeline <https://github.com/doh-jdj0303/bigbacter-nf>\

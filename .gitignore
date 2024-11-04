@@ -55,3 +55,4 @@ outputs_scripts/
 BacteriaGenomicsReports.html
 
 /.quarto/
+*.html

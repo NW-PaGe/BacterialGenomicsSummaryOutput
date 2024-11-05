@@ -1,5 +1,7 @@
-#SNP DISTANCES MIN AND MAX
-#This script loads a long format distance file and outputs the MIN and MAX SNP distances
+#SNP DISTANCES
+#This script loads a long format distance file and outputs the MIN and MAX SNP distances and
+#Outputs files with strong genomic linkages (0-10 SNPs) and intermediate linkages (11-50 SNPs) detected 
+#among the new isolates and the rest in the same genomic cluster
 
 #Create a folder to save the outputs of this script
 outputs_script_dir <- "outputs_scripts"
@@ -12,6 +14,7 @@ if (!exists("snp_dist_long_list")) {
   stop("csv_list not found. Make sure the list of dataframes is loaded.")
 }
 
+#SNP DISTANCES MIN AND MAX
 #Create an empty list to store the results
 summary_snp_minmax <- list()
 
@@ -21,7 +24,7 @@ for (summary_Dists in names(snp_dist_long_list)) {
   #Extract the dataframe from the list
   df_snp <- snp_dist_long_list[[summary_Dists]]
   
-  #Check if the dataframe has more than 4 rows
+  #Check if the dataframe has more than 4 rows and calculate max and min SNP distance
   if (nrow(df_snp) > 4) {
     snp_minmax <- df_snp %>%
       filter(ID1 != ID2) %>%
@@ -49,4 +52,42 @@ for (summary_Dists in names(snp_dist_long_list)) {
   }
 }
 
-save(summary_snp_minmax, file = file.path(outputs_script_dir, "summary_snp_minmax.RData"))
+#save(summary_snp_minmax, file = file.path(outputs_script_dir, "summary_snp_minmax.RData"))
+
+#SNP DISTANCES STRONG AND INTERMEDIATE GENOMIC LINKAGES
+#Create an empty list to store the results
+summary_snp_linkages <- list()
+
+#Iterate over each dataframe to identify strong and intermediate genomic linkages
+for (summary_Linkages in names(snp_dist_long_list)) {
+  
+  #Extract the dataframe from the list
+  df_links <- snp_dist_long_list[[summary_Linkages]]
+  
+  #Check if the dataframe has more than 4 rows
+  if (nrow(df_links) > 4) {
+    snp_links <- df_links %>%
+      filter(ID1 != ID2) %>%
+      filter(ID1 != "Reference") %>%
+      filter(ID2 != "Reference") %>%
+      mutate(StrongGenLinkage= ifelse(dist >=0 & dist<=5, ID2, ""),
+      InterGenLinkage= ifelse(dist >=11 & dist<=50, ID2, "")) %>%
+      filter(StrongGenLinkage != "" | InterGenLinkage != "") %>%
+    
+  #Add the source file name as a column
+      mutate(Source = summary_Linkages)%>%
+      select(Source, ID1, StrongGenLinkage, InterGenLinkage) 
+    
+    #Store the summary results
+    summary_snp_linkages[[summary_Linkages]] <-snp_links
+    
+    #Print the result for verification
+    cat("Summary of Linkages SNPs for", summary_Linkages, ":\n")
+    print(snp_links)
+    cat("\n")
+  } else {
+    cat("Skipping", summary_Linkages, "as it has 4 or fewer rows.\n")
+  }
+}
+
+save(summary_snp_linkages, file = file.path(outputs_script_dir, "summary_snp_linkages.RData"))

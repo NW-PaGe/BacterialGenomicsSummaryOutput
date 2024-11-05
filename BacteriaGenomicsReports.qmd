@@ -16,6 +16,7 @@ library(kableExtra)
 library(tidyverse)
 library(lubridate)
 library(tools)
+library(htmltools)
 ```
 
 ```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}
@@ -206,11 +207,62 @@ kable(final_metadata) %>%
   row_spec(0, bold = TRUE)
 
 ```
+## Genomic Linkages
+
+Based on the SNP distances these are the strong (0-10 SNPs) and intermediate (11-50 SNPs) linkages found in these genetic clusters
+```{r echo=FALSE, results='asis'}
+
+outputs_script_dir <- "outputs_scripts"
+
+
+snplinks_file <- list.files(outputs_script_dir, pattern = "summary_snp_linkages.RData$", full.names = TRUE)
+loaded_snp_links <- load(snplinks_file[1])
+
+
+summary_snp_links <- bind_rows(get(loaded_snp_links[1]))
+
+
+if (nrow(summary_snp_links) > 0) {
+  unique_sources <- unique(summary_snp_links$Source)
+
+  for (source in unique_sources) {
+    filtered_links <- summary_snp_links %>%
+      filter(Source == source)
+
+    if (nrow(filtered_links) > 0) {
+      filtered_links <- filtered_links %>% select(-Source) %>% 
+      rename(
+          ID = ID1,
+          `StrongGenLinks (0-10 SNP)` = StrongGenLinkage,
+          `InterGenLinks (11-50 SNP)` = InterGenLinkage
+        )
+      
+  cat(paste0("#### Summary of SNP Linkages for ", source, "\n\n"))
+
+      # Create the table and print it directly
+      cat(kable(filtered_links) %>%
+        kable_styling(
+          bootstrap_options = c("striped"),
+          full_width = FALSE,
+          position = "left",
+          font_size = 12,
+          html_font = "Arial"
+        ) %>%
+        row_spec(0, bold = TRUE) %>%
+        as.character(), "\n")
+    }
+  }
+} else {
+  message("SNP distances weren't calculated")
+}
+```
+
 
 ## Resources
-The code to generate this report is available here <https://github.com/NW-PaGe/BacterialGenomicsSummaryOutput>\
+The code to generate this report is available here: \
+<https://github.com/NW-PaGe/BacterialGenomicsSummaryOutput>\
 
-The following bioinformatics methods were used by WA PHL to generate some of the data summarized in this report.\
+The following bioinformatics methods were used by WA PHL to generate some of the data summarized in this report:\
 BigBacter bioinformatics pipeline <https://github.com/doh-jdj0303/bigbacter-nf>\
 Snippy <https://github.com/tseemann/snippy>\
 Gubbins <https://github.com/nickjcroucher/gubbins>

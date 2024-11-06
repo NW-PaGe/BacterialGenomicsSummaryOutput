@@ -71,6 +71,35 @@ kable(new_clust) %>%
   row_spec(0, bold = TRUE)
 ```
 
+## Failed Isolates
+
+The following isolates failed quality control.
+
+```{r echo = FALSE}
+outputs_script_dir <- "outputs_scripts"
+
+failed_file <- list.files(outputs_script_dir, pattern = "failed.RData$", full.names = TRUE)
+
+loaded_failed <- load(failed_file[1])
+
+failed_df <- bind_rows(get(loaded_failed[1]))
+
+if (nrow(failed_df) > 0) {
+  kable(failed_df) %>%
+    kable_styling(
+      bootstrap_options = c("striped"),
+      full_width = FALSE,
+      position = "left",
+      font_size = 12,
+      html_font = "Arial"
+    ) %>%
+    row_spec(0, bold = TRUE)
+} else {
+  message("There weren't any isolates that failed in this run")
+}
+
+```
+
 ## Recombination
 
 Bacterial recombination is the process where bacteria exchange genetic material with each other which leads to the gain of new DNA sequences into their genomes.  It is important to be aware of recombination when conducting genomic analyses because recombination events can be confused with mutations events which can impact metrics used to characterize relationships between sequences, such as calculating single nucleotide polymorphisms (SNP) distances. The bioinformatics pipelines developed at WA PHL use Gubbins, a method to detect and control for recombination. If recombination is detected the sites where recombination is present are masked in the SNPs distance calculations and in the phylogenetic trees. 
@@ -136,77 +165,6 @@ if (nrow(summary_snp) > 0) {
 
 *Sequences that resulted in new genetic clusters are excluded from this calculation.*
 
-## Failed Isolates
-
-The following isolates failed quality control.
-
-```{r echo = FALSE}
-outputs_script_dir <- "outputs_scripts"
-
-failed_file <- list.files(outputs_script_dir, pattern = "failed.RData$", full.names = TRUE)
-
-loaded_failed <- load(failed_file[1])
-
-failed_df <- bind_rows(get(loaded_failed[1]))
-
-if (nrow(failed_df) > 0) {
-  kable(failed_df) %>%
-    kable_styling(
-      bootstrap_options = c("striped"),
-      full_width = FALSE,
-      position = "left",
-      font_size = 12,
-      html_font = "Arial"
-    ) %>%
-    row_spec(0, bold = TRUE)
-} else {
-  message("There weren't any isolates that failed in this run")
-}
-
-```
-
-## Metadata
-
-This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates. The facilities are the submitting facilities and the counties the submitting facilities' county.
-
-```{r echo = FALSE}
-
-results_dir <- "metadata_summ"
-
-rdata_files <- list.files(results_dir, pattern = "\\.RData$", full.names = TRUE)
-
-#Empty list to store all data frames
-all_data <- list()
-
-#Load and collect each data frame
-for (file in rdata_files) {
-  load(file)
-  file_name <- file_path_sans_ext(basename(file))
-  
-  #Add a new column to the data frame with the file name
-  combined_df <- combined_df %>%
-    mutate(Taxa_GenomicCluster = file_name)%>%
-    select(Taxa_GenomicCluster, everything())
-  
-  #Store the modified data frame in the list
-  all_data[[file_name]] <- combined_df
-}
-
-#Bind all the data frames into one combined data frame
-final_metadata <- bind_rows(all_data)
-
-#Table attributes
-kable(final_metadata) %>%
-  kable_styling(
-    bootstrap_options = c("striped"),
-    full_width = FALSE,
-    position = "left",
-    font_size = 10,
-    html_font = "Arial"
-  ) %>%
-  row_spec(0, bold = TRUE)
-
-```
 ## Genomic Linkages
 
 Based on the SNP distances these are the strong (0-10 SNPs) and intermediate (11-50 SNPs) linkages found among the new isolate/s and other sequences in the corresponding genomic clusters.
@@ -264,6 +222,51 @@ if (nrow(summary_snp_links) == 0) {
   }
 }
 ```
+
+
+## Metadata
+
+This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates. The facilities are the submitting facilities and the counties the submitting facilities' county.
+
+```{r echo = FALSE}
+
+results_dir <- "metadata_summ"
+
+rdata_files <- list.files(results_dir, pattern = "\\.RData$", full.names = TRUE)
+
+#Empty list to store all data frames
+all_data <- list()
+
+#Load and collect each data frame
+for (file in rdata_files) {
+  load(file)
+  file_name <- file_path_sans_ext(basename(file))
+  
+  #Add a new column to the data frame with the file name
+  combined_df <- combined_df %>%
+    mutate(Taxa_GenomicCluster = file_name)%>%
+    select(Taxa_GenomicCluster, everything())
+  
+  #Store the modified data frame in the list
+  all_data[[file_name]] <- combined_df
+}
+
+#Bind all the data frames into one combined data frame
+final_metadata <- bind_rows(all_data)
+
+#Table attributes
+kable(final_metadata) %>%
+  kable_styling(
+    bootstrap_options = c("striped"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 10,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+
+```
+
 
 
 ## Resources

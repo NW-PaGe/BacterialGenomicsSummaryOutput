@@ -247,7 +247,7 @@ if (nrow(summary_snp_links) == 0) {
             `InterGenLinks (11-50 SNP)` = InterGenLinkage
           )
         
-        cat(paste0("#### Summary of SNP Linkages for ", source, "\n\n"))
+        cat(paste0("#### Genomic linkages for ", source, "\n\n"))
 
         cat(kable(filtered_links) %>%
           kable_styling(

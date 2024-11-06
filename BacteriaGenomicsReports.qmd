@@ -52,7 +52,7 @@ kable(summary_new_seq) %>%
 
 ```
 
-Of those, the following isolates resulted in new genetic clusters.
+Of these, the following isolates resulted in new genetic clusters.
 
 ```{r echo = FALSE}
 #Identify samples that resulted in new clusters
@@ -209,7 +209,8 @@ kable(final_metadata) %>%
 ```
 ## Genomic Linkages
 
-Based on the SNP distances these are the strong (0-10 SNPs) and intermediate (11-50 SNPs) linkages found in these genetic clusters
+Based on the SNP distances these are the strong (0-10 SNPs) and intermediate (11-50 SNPs) linkages found among the new isolate/s and other sequences in the corresponding genomic clusters.
+
 ```{r echo=FALSE, results='asis'}
 
 outputs_script_dir <- "outputs_scripts"
@@ -221,39 +222,46 @@ loaded_snp_links <- load(snplinks_file[1])
 
 summary_snp_links <- bind_rows(get(loaded_snp_links[1]))
 
+if (nrow(summary_snp_links) == 0) {
+  cat("SNP distances weren't calculated\n")
+} else {
 
-if (nrow(summary_snp_links) > 0) {
-  unique_sources <- unique(summary_snp_links$Source)
+  summary_snp_links <- summary_snp_links %>% filter(STATUS == "NEW")
+  
+  if (nrow(summary_snp_links) == 0) {
 
-  for (source in unique_sources) {
-    filtered_links <- summary_snp_links %>%
-      filter(Source == source)
+    cat("Genomic linkages were not detected among the new sequence/s and the other isolates in that genomic cluster\n")
+  } else {
+    unique_sources <- unique(summary_snp_links$Source)
 
-    if (nrow(filtered_links) > 0) {
-      filtered_links <- filtered_links %>% select(-Source) %>% 
-      rename(
-          ID = ID1,
-          `StrongGenLinks (0-10 SNP)` = StrongGenLinkage,
-          `InterGenLinks (11-50 SNP)` = InterGenLinkage
-        )
-      
-  cat(paste0("#### Summary of SNP Linkages for ", source, "\n\n"))
+    for (source in unique_sources) {
+      filtered_links <- summary_snp_links %>%
+        filter(Source == source)
 
-      # Create the table and print it directly
-      cat(kable(filtered_links) %>%
-        kable_styling(
-          bootstrap_options = c("striped"),
-          full_width = FALSE,
-          position = "left",
-          font_size = 12,
-          html_font = "Arial"
-        ) %>%
-        row_spec(0, bold = TRUE) %>%
-        as.character(), "\n")
+      if (nrow(filtered_links) > 0) {
+        filtered_links <- filtered_links %>%
+          select(-Source, -STATUS) %>%
+          rename(
+            ID = ID1,
+            `StrongGenLinks (0-10 SNP)` = StrongGenLinkage,
+            `InterGenLinks (11-50 SNP)` = InterGenLinkage
+          )
+        
+        cat(paste0("#### Summary of SNP Linkages for ", source, "\n\n"))
+
+        cat(kable(filtered_links) %>%
+          kable_styling(
+            bootstrap_options = c("striped"),
+            full_width = FALSE,
+            position = "left",
+            font_size = 12,
+            html_font = "Arial"
+          ) %>%
+          row_spec(0, bold = TRUE) %>%
+          as.character(), "\n")
+      }
     }
   }
-} else {
-  message("SNP distances weren't calculated")
 }
 ```
 

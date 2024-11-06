@@ -80,7 +80,7 @@ for (summary_Linkages in names(snp_dist_long_list)) {
     filter(ID2 != "Reference") %>%
     mutate(ID1 = str_remove(ID1, "_T1$"),
            ID2 = str_remove(ID2, "_T1$")) %>% 
-    mutate(StrongGenLinkage= ifelse(dist >=0 & dist<=5, ID2, ""),
+    mutate(StrongGenLinkage= ifelse(dist >=0 & dist<=10, ID2, ""),
            InterGenLinkage= ifelse(dist >=11 & dist<=50, ID2, "")) %>%
     filter(StrongGenLinkage != "" | InterGenLinkage != "") %>%
     mutate(Source = summary_Linkages) %>%

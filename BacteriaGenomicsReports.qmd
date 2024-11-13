@@ -60,7 +60,8 @@ new_clust<-newseq %>%
   filter(ISO_IN_CLUSTER==1)
 
 #Table attributes
-kable(new_clust) %>%
+if (nrow(new_clust) > 0) {
+  kable(new_clust) %>%
   kable_styling(
     bootstrap_options = c("striped"),
     full_width = FALSE,
@@ -69,6 +70,9 @@ kable(new_clust) %>%
     html_font = "Arial"
   ) %>%
   row_spec(0, bold = TRUE)
+} else {
+  message("There were no new clusters created in this run")
+}
 ```
 
 ## Failed Isolates

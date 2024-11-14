@@ -69,10 +69,11 @@ summary_tsv <- read.delim(summary_tsv_files[1])
 
 #DATA CLEANING
 #BigBacter sometimes adds a _T1 to the samples. Remove and clean IDs
-summary_tsv$ID <- ifelse(summary_tsv$ID == "Reference", 
-                         "Reference", 
-                         substr(summary_tsv$ID, 1, 12))
+summary_tsv$ID <- ifelse(str_starts(summary_tsv$ID,"WA"),
+                         substr(summary_tsv$ID, 1, 9),
+                         summary_tsv$ID)
 
 
 ##LOAD WABACTERIAMASTER_METADATA#
 wabacteriamaster_meta_df<- read.csv(wabacteriamaster_metadata)
+

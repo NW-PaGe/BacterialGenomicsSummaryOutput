@@ -106,7 +106,7 @@ if (nrow(failed_df) > 0) {
 
 ## Recombination
 
-Bacterial recombination is the process where bacteria exchange genetic material with each other which leads to the gain of new DNA sequences into their genomes.  It is important to be aware of recombination when conducting genomic analyses because recombination events can be confused with mutations events which can impact metrics used to characterize relationships between sequences, such as calculating single nucleotide polymorphisms (SNP) distances. The bioinformatics pipelines developed at WA PHL use Gubbins, a method to detect and control for recombination. If recombination is detected the sites where recombination is present are masked in the SNPs distance calculations and in the phylogenetic trees. 
+Bacterial recombination is the process where bacteria exchange genetic material with each other which leads to the gain of new DNA sequences into their genomes. It is important to be aware of recombination when conducting genomic analyses because recombination events can be confused with mutations events which can impact metrics used to characterize relationships between sequences, such as calculating single nucleotide polymorphisms (SNP) distances. The bioinformatics pipelines developed at WA PHL use Gubbins, a method to detect and control for recombination. If recombination is detected the sites where recombination is present are masked in the SNPs distance calculations and in the phylogenetic trees.
 
 We evaluate recombination in multiple ways. First the number of sites where recombination was detected is divided by the total length of the core genome. If recombination is more than 5% in a genomic cluster the Gubbins outputs are used. If recombination is more than 1% but less than 5%, then the Snippy and Gubbins outputs are reviewed jointly to see if they yield different interpretations. If the interpretations differ, then most likely we will use the Gubbins for the genomic interpretations.
 
@@ -227,7 +227,6 @@ if (nrow(summary_snp_links) == 0) {
 }
 ```
 
-
 ## Metadata
 
 This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates. The facilities are the submitting facilities and the counties the submitting facilities' county.
@@ -271,10 +270,9 @@ kable(final_metadata) %>%
 
 ```
 
-
-
 ## Resources
-The code to generate this report is available here: \
+
+The code to generate this report is available here:\
 <https://github.com/NW-PaGe/BacterialGenomicsSummaryOutput>\
 
 The following bioinformatics methods were used by WA PHL to generate some of the data summarized in this report:\

@@ -8,11 +8,8 @@ if (!dir.exists(results_dir)) {
 }
 
 #Wrangle the data
-current_run_summary<-summary_tsv %>% 
+current_run_summary<-summary_tsv_cleaned %>% 
   filter(ID!="Reference") %>%
-  mutate(ID = ifelse(str_starts(ID,"WA"),
-                     str_remove(ID, "_T1$"),
-                     ID)) %>%
   select(ID, 
          STATUS,
          TAXA,

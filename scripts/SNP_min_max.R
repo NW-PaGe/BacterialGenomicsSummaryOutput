@@ -57,11 +57,8 @@ save(summary_snp_minmax, file = file.path(outputs_script_dir, "summary_snp_minma
 #SNP DISTANCES STRONG AND INTERMEDIATE GENOMIC LINKAGES
 
 #Identify new isolates using the summary_tsv file
-isolates_run_summ<-summary_tsv %>% 
+isolates_run_summ<-summary_tsv_cleaned %>% 
   filter(ID!="Reference") %>%
-  mutate(ID = ifelse(str_starts(ID,"WA"),
-                     str_remove(ID, "_T1$"),
-                     ID)) %>%
   select(ID, STATUS)
 
 #Empty list to store results
@@ -78,8 +75,14 @@ for (summary_Linkages in names(snp_dist_long_list)) {
     filter(ID1 != ID2) %>%
     filter(ID1 != "Reference") %>%
     filter(ID2 != "Reference") %>%
-    mutate(ID1 = str_remove(ID1, "_T1$"),
-           ID2 = str_remove(ID2, "_T1$")) %>% 
+    mutate(ID1 = case_when(str_starts(ID1, "WA") ~ substr(ID1, 1, 9),
+        str_starts(ID1, regex("[0-9]{4}")) ~ substr(ID1, 1, 12),
+        str_ends(ID1, "_T1") ~ str_remove(ID1, "_T1"),
+        TRUE ~ ID1)) %>% 
+     mutate(ID2 = case_when(str_starts(ID2, "WA") ~ substr(ID2, 1, 9),
+        str_starts(ID2, regex("[0-9]{4}")) ~ substr(ID2, 1, 12),
+        str_ends(ID2, "_T1") ~ str_remove(ID2, "_T1"),
+        TRUE ~ ID2)) %>%
     mutate(StrongGenLinkage= ifelse(dist >=0 & dist<=10, ID2, ""),
            InterGenLinkage= ifelse(dist >=11 & dist<=50, ID2, "")) %>%
     filter(StrongGenLinkage != "" | InterGenLinkage != "") %>%

@@ -3,7 +3,7 @@ title: "Bacterial Genomics - Summary Report"
 date: today
 author: 
   - name: "Marcela Torres <br> Dahlia Walters"
-    affiliation: "Molecular Epidemiolgy Program, WA DOH"
+    affiliation: "Molecular Epidemiology Program, WA DOH"
 format: 
   html:
     self-contained: true

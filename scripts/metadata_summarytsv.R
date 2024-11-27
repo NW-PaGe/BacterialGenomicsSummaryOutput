@@ -102,7 +102,8 @@ results <- lapply(metadata_grouped, function(df) {
   #Extract unique counties where STATUS is NEW
   new_counties <- unique(na.omit(df %>%
                            filter(STATUS == "NEW") %>%
-                           select(SubmitterCounty)))
+                           select(SubmitterCounty))) %>%
+                           unlist()
   
   #Extract unique submitting facilities' names from Submitter facility
   all_names <- unique(na.omit(df$SubmitterName))
@@ -110,7 +111,8 @@ results <- lapply(metadata_grouped, function(df) {
   #Extract unique submitting facilities' names where STATUS is NEW
   new_names <- unique(na.omit(df %>%
                                    filter(STATUS == "NEW") %>%
-                                   select(SubmitterName)))
+                                   select(SubmitterName))) %>%
+                                   unlist()
   
   
   #Identify isolates from cases with the same DOB and extract their ID and WA_ID

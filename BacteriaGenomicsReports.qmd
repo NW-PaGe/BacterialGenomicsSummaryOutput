@@ -28,8 +28,28 @@ source("scripts/metadata_summarytsv.R")
 
 ## Overview New Samples
 
-These are `r nrow(newseq)` new sequencing results in this BigBacter run.
+There are `r nrow(newseq)` new sequencing results in this BigBacter run.
 
+This is the mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
+```{r echo = FALSE}
+rdata_file <- file.path("metadata_summ", "mapping_case_ID.RData")
+
+load(rdata_file)
+
+#Table attributes
+kable(mapping_case_ID) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+
+```
+
+The new isolates were classified by BigBacter as follows:
 ```{r echo = FALSE}
 outputs_script_dir <- "outputs_scripts"
 
@@ -42,7 +62,7 @@ summary_new_seq <- bind_rows(get(loaded_newseq[1]))
 #Table attributes
 kable(summary_new_seq) %>%
   kable_styling(
-    bootstrap_options = c("striped"),
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
     full_width = FALSE,
     position = "left",
     font_size = 12,
@@ -52,7 +72,7 @@ kable(summary_new_seq) %>%
 
 ```
 
-Of these, the following isolates resulted in new genetic clusters.
+Of these, the following isolates resulted in new genetic clusters:
 
 ```{r echo = FALSE}
 #Identify samples that resulted in new clusters
@@ -63,7 +83,7 @@ new_clust<-newseq %>%
 if (nrow(new_clust) > 0) {
   kable(new_clust) %>%
   kable_styling(
-    bootstrap_options = c("striped"),
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
     full_width = FALSE,
     position = "left",
     font_size = 12,
@@ -91,7 +111,7 @@ failed_df <- bind_rows(get(loaded_failed[1]))
 if (nrow(failed_df) > 0) {
   kable(failed_df) %>%
     kable_styling(
-      bootstrap_options = c("striped"),
+      bootstrap_options = c("striped", "hover", "condensed", "responsive"),
       full_width = FALSE,
       position = "left",
       font_size = 12,
@@ -123,7 +143,7 @@ summary_recomb <- bind_rows(get(loaded_summary_recomb[1]))
 if (nrow(summary_recomb) > 0) {
   kable(summary_recomb) %>%
     kable_styling(
-      bootstrap_options = c("striped"),
+      bootstrap_options = c("striped", "hover", "condensed", "responsive"),
       full_width = FALSE,
       position = "left",
       font_size = 12,
@@ -154,7 +174,7 @@ summary_snp <- bind_rows(get(loaded_snp_minmax[1]))
 if (nrow(summary_snp) > 0) {
   kable(summary_snp) %>%
     kable_styling(
-      bootstrap_options = c("striped"),
+      bootstrap_options = c("striped", "hover", "condensed", "responsive"),
       full_width = FALSE,
       position = "left",
       font_size = 12,
@@ -213,7 +233,7 @@ if (nrow(summary_snp_links) == 0) {
 
         cat(kable(filtered_links) %>%
           kable_styling(
-            bootstrap_options = c("striped"),
+            bootstrap_options = c("striped", "hover", "condensed", "responsive"),
             full_width = FALSE,
             position = "left",
             font_size = 12,
@@ -261,7 +281,7 @@ final_metadata <- bind_rows(all_data)
 #Table attributes
 kable(final_metadata) %>%
   kable_styling(
-    bootstrap_options = c("striped"),
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
     full_width = FALSE,
     position = "left",
     font_size = 10,

@@ -177,3 +177,14 @@ for (name in names(metadata_grouped)) {
   
   save(combined_df, file = file.path(results_dir, paste0(output_name, ".RData")))
 }
+
+
+#Mapping of sequencing ID and CASE_ID
+mapping_case_ID<-current_run_metadata%>% 
+  filter(STATUS=="NEW") %>% 
+  mutate(CASE_ID=as.character(CASE_ID)) %>% 
+  select(ID,
+         WA_ID,
+         CASE_ID)
+
+save(mapping_case_ID, file = file.path(results_dir,"mapping_case_ID.RData"))

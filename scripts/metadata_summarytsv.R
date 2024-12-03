@@ -1,7 +1,14 @@
 ##METADATA BY GENETIC CLUSTER
 #This script summarizes the metadata information by genetic cluster
 
-#Create a folder to save the metadata summaries
+#Create a folder to save the mapping of sequencing ID and WDRS Case ID
+outputs_script_dir <- "outputs_scripts"
+if (!dir.exists(outputs_script_dir)) {
+  dir.create(outputs_script_dir)
+}
+
+
+#Create a folder to save the metadata summaries for the metadata table
 results_dir <- "metadata_summ"
 if (!dir.exists(results_dir)) {
   dir.create(results_dir)
@@ -177,3 +184,14 @@ for (name in names(metadata_grouped)) {
   
   save(combined_df, file = file.path(results_dir, paste0(output_name, ".RData")))
 }
+
+
+#Mapping of sequencing ID and CASE_ID
+mapping_case_ID<-current_run_metadata%>% 
+  filter(STATUS=="NEW") %>% 
+  mutate(CASE_ID=as.character(CASE_ID)) %>% 
+  select(ID,
+         WA_ID,
+         CASE_ID)
+
+save(mapping_case_ID, file = file.path(outputs_script_dir, "mapping_case_ID.RData"))

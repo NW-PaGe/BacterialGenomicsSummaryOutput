@@ -32,9 +32,9 @@ There are `r nrow(newseq)` new sequencing results in this BigBacter run.
 
 This is the mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
 ```{r echo = FALSE}
-rdata_file <- file.path("metadata_summ", "mapping_case_ID.RData")
+mapping_file <- file.path("outputs_scripts", "mapping_case_ID.RData")
 
-load(rdata_file)
+load(mapping_file)
 
 #Table attributes
 kable(mapping_case_ID) %>%

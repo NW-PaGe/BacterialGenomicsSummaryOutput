@@ -25,7 +25,7 @@ save(newseq, file = file.path(outputs_script_dir, "newseq.RData"))
 #Data wrangling
 recomb<-summary_tsv_cleaned %>%
   mutate(GENOMIC_CLUSTER=CLUSTER)%>% 
-  filter(ISO_IN_CLUSTER!=1) %>% 
+  filter(ISO_IN_CLUSTER!= 1 & ISO_IN_CLUSTER!=2) %>% 
   filter(QUAL!="FAIL") %>% 
   mutate(RECOMB= as.numeric(RECOMB))
 

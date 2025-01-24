@@ -9,8 +9,7 @@ paths <-readLines("paths.txt")
 #Load each path separately
 main_folder <- paths[1]
 wabacteriamaster_metadata <- paths[2]
-
-
+historical_metadata <- paths[3]
 
 ##EXTRACTING OUTPUTS FROM MAIN FOLDER##
 #List all subfolders saved in the main folder
@@ -67,16 +66,33 @@ summary_tsv_files<- files_in_most_recent_folder[grepl("summary", files_in_most_r
 #Load the summary tsv file assuming there is only per folder
 summary_tsv <- read.delim(summary_tsv_files[1])
 
-#DATA CLEANING
+#DATA CLEANING FUNCTION
+# Function for column cleanup
+clean_column <- function(column) {
+  case_when(
+    str_starts(column, "WA") ~ substr(column, 1, 9),
+    str_starts(column, regex("[0-9]{4}")) ~ substr(column, 1, 12),
+    str_ends(column, "_T1") ~ str_remove(column, "_T1"),
+    TRUE ~ column
+  )
+}
+
 #BigBacter sometimes adds a _T1 to the samples. Remove and clean IDs
-
 summary_tsv_cleaned<- summary_tsv %>%
-  mutate(ID = case_when(
-    str_starts(summary_tsv$ID, "WA") ~ substr(summary_tsv$ID, 1, 9),
-    str_starts(summary_tsv$ID, regex("[0-9]{4}")) ~ substr(summary_tsv$ID, 1, 12),
-    str_ends(summary_tsv$ID, "_T1") ~ str_remove(summary_tsv$ID, "_T1"),
-    TRUE ~ summary_tsv$ID
-  ))
-
+  mutate(ID = clean_column(ID))
+         
 ##LOAD WABACTERIAMASTER_METADATA#
 wabacteriamaster_meta_df<- read.csv(wabacteriamaster_metadata)
+
+##LOAD HISTORICAL_METADATA REFERENCE FILE#
+historical_metadata<- read.csv(historical_metadata)
+
+#DATA CLEANING
+#BigBacter sometimes adds a _T1 to the samples. Remove and clean IDs
+historical_metadata_cleanedids <- historical_metadata %>%
+  mutate(
+    ID = clean_column(ID),
+    WA_ID = clean_column(WA_ID),
+    BB_ID = clean_column(BB_ID),
+    ALT_ID = clean_column(ALT_ID)
+  )

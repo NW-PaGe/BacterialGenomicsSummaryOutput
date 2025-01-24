@@ -31,7 +31,7 @@ source("scripts/metadata_summarytsv.R")
 There are `r nrow(newseq)` new sequencing results in this BigBacter run.
 
 This is the mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
-```{r echo = FALSE}
+```{r overview_new_samples_table, echo = FALSE}
 mapping_file <- file.path("outputs_scripts", "mapping_case_ID.RData")
 
 load(mapping_file)
@@ -50,7 +50,7 @@ kable(mapping_case_ID) %>%
 ```
 
 The new isolates were classified by BigBacter as follows:
-```{r echo = FALSE}
+```{r new_isolates_table, echo = FALSE}
 outputs_script_dir <- "outputs_scripts"
 
 newseq_file <- list.files(outputs_script_dir, pattern = "newseq.RData$", full.names = TRUE)
@@ -74,7 +74,7 @@ kable(summary_new_seq) %>%
 
 Of these, the following isolates resulted in new genetic clusters:
 
-```{r echo = FALSE}
+```{r new_clusters_table, echo = FALSE}
 #Identify samples that resulted in new clusters
 new_clust<-newseq %>% 
   filter(ISO_IN_CLUSTER==1)
@@ -99,7 +99,7 @@ if (nrow(new_clust) > 0) {
 
 The following isolates failed quality control.
 
-```{r echo = FALSE}
+```{r failed_isolates_table, echo = FALSE}
 outputs_script_dir <- "outputs_scripts"
 
 failed_file <- list.files(outputs_script_dir, pattern = "failed.RData$", full.names = TRUE)
@@ -130,7 +130,7 @@ Bacterial recombination is the process where bacteria exchange genetic material 
 
 We evaluate recombination in multiple ways. First the number of sites where recombination was detected is divided by the total length of the core genome. If recombination is more than 5% in a genomic cluster the Gubbins outputs are used. If recombination is more than 1% but less than 5%, then the Snippy and Gubbins outputs are reviewed jointly to see if they yield different interpretations. If the interpretations differ, then most likely we will use the Gubbins for the genomic interpretations.
 
-```{r echo = FALSE}
+```{r recombination, echo = FALSE}
 outputs_script_dir <- "outputs_scripts"
 
 recomb_file <- list.files(outputs_script_dir, pattern = "recomb_summary.RData$", full.names = TRUE)
@@ -162,7 +162,7 @@ if (nrow(summary_recomb) > 0) {
 
 The minimum and maximum SNP distances for each genomic cluster by each method, Snippy and Gubbins, are summarized below
 
-```{r echo = FALSE}
+```{r snp_min_max_table, echo = FALSE}
 outputs_script_dir <- "outputs_scripts"
 
 snpminmax_file <- list.files(outputs_script_dir, pattern = "summary_snp_minmax.RData$", full.names = TRUE)
@@ -193,7 +193,7 @@ if (nrow(summary_snp) > 0) {
 
 Based on the SNP distances these are the strong (0-10 SNPs) and intermediate (11-50 SNPs) linkages found among the new isolate/s and other sequences in the corresponding genomic clusters.
 
-```{r echo=FALSE, results='asis'}
+```{r genomic_linkages_tables, echo=FALSE, results='asis'}
 
 outputs_script_dir <- "outputs_scripts"
 
@@ -252,7 +252,7 @@ if (nrow(summary_snp_links) == 0) {
 
 This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates. The facilities are the submitting facilities and the counties the submitting facilities' county.
 
-```{r echo = FALSE}
+```{r metadata_table, echo = FALSE}
 
 results_dir <- "metadata_summ"
 

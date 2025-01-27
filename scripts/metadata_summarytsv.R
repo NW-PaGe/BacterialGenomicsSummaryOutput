@@ -30,13 +30,15 @@ notwaids_current_run<-current_run_summary %>%
   filter(!str_starts(ID,"WA"))
 
 #Identify observations in the current run that are left once those without WA ID are filtered out
-remaining_current_run<- anti_join(current_run_summary, notwaids_current_run, by='ID')
+remaining_current_run<- anti_join(current_run_summary, notwaids_current_run, by='ID') %>% 
+  rename(WA_ID = 'ID')
 
 #Wrangle historical metadata
 historical_metadata_summ<-historical_metadata %>%
   mutate(SpecimenDateCollected=as.Date(CollectionDate, format = "%Y-%m-%d")) %>%
   mutate(PatientBirthDate=as.Date(DOB, format = "%Y-%m-%d")) %>% 
   select(ID,
+         WA_ID,
          CASE_ID,
          SpecimenDateCollected,
          PatientFirstName,
@@ -49,6 +51,7 @@ historical_metadata_summ<-historical_metadata %>%
 
 #Add the historical metadata to observations that don't have WA IDs in the current run
 current_run_histmetadata<-left_join(notwaids_current_run, historical_metadata_summ, by='ID') %>% 
+  mutate(ID = ifelse(!is.na(WA_ID), WA_ID, ID)) %>%
   select(ID,
          STATUS,
          CASE_ID,
@@ -63,15 +66,14 @@ current_run_histmetadata<-left_join(notwaids_current_run, historical_metadata_su
          PatientAddressCounty,
          SubmitterCounty,
          SubmitterName,
-         SpecimenSource) %>% 
+         SpecimenSource) %>%
   unique()
 
 #Wrangle metadata from new tracker
 bacteriamastermeta_summ<-wabacteriamaster_meta_df %>%
-  rename(ID = PHLAccessionNumber) %>% 
   mutate(SpecimenDateCollected=as.Date(SpecimenDateCollected, format = "%Y-%m-%d")) %>%
   mutate(PatientBirthDate=as.Date(PatientBirthDate, format = "%Y-%m-%d")) %>% 
-  select(ID,
+  select(PHLAccessionNumber,
          CASE_ID,
          SpecimenDateCollected,
          PatientFirstName,
@@ -84,7 +86,8 @@ bacteriamastermeta_summ<-wabacteriamaster_meta_df %>%
 
 
 #Add the metadata to the selected information from the summary tsv
-current_run_nonhist_metadata<-left_join(remaining_current_run, bacteriamastermeta_summ, by='ID') %>% 
+current_run_nonhist_metadata<-left_join(remaining_current_run, bacteriamastermeta_summ, by=c('WA_ID'='PHLAccessionNumber')) %>% 
+  rename(ID = WA_ID) %>% 
   select(ID,
          STATUS,
          CASE_ID,

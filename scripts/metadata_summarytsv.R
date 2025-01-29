@@ -25,20 +25,16 @@ current_run_summary<-summary_tsv_cleaned %>%
          ISO_IN_CLUSTER,
          ISO_PASS_QC)
 
-#Identify observations in the current run that don't have a WA ID
-notwaids_current_run<-current_run_summary %>% 
-  filter(!str_starts(ID,"WA"))
+# Split the current_run_summary into two df based on ID
+wa_ids <- current_run_summary %>% filter(grepl("^WA", ID))
+non_wa_ids <- current_run_summary %>% filter(!grepl("^WA", ID))
 
-#Identify observations in the current run that are left once those without WA ID are filtered out
-remaining_current_run<- anti_join(current_run_summary, notwaids_current_run, by='ID') %>% 
-  rename(WA_ID = 'ID')
-
-#Wrangle historical metadata
-historical_metadata_summ<-historical_metadata %>%
-  mutate(SpecimenDateCollected=as.Date(CollectionDate, format = "%Y-%m-%d")) %>%
-  mutate(PatientBirthDate=as.Date(DOB, format = "%Y-%m-%d")) %>% 
+#Wrangle metadata from new tracker
+bacteriamastermeta_summ<-bacteriatrackerwa_meta_df %>%
+  mutate(SpecimenDateCollected=as.Date(COLLECTION_DATE, format = "%Y-%m-%d")) %>%
+  mutate(PatientBirthDate=as.Date(PatientBirthDate, format = "%Y-%m-%d")) %>% 
   select(ID,
-         WA_ID,
+         ID_ALT,
          CASE_ID,
          SpecimenDateCollected,
          PatientFirstName,
@@ -49,10 +45,11 @@ historical_metadata_summ<-historical_metadata %>%
          SubmitterName,
          SpecimenSource)
 
-#Add the historical metadata to observations that don't have WA IDs in the current run
-current_run_histmetadata<-left_join(notwaids_current_run, historical_metadata_summ, by='ID') %>% 
-  mutate(ID = ifelse(!is.na(WA_ID), WA_ID, ID)) %>%
+# Left join WA IDs on ID
+wa_joined <- wa_ids %>%
+  left_join(bacteriamastermeta_summ, by = "ID")%>% 
   select(ID,
+         ID_ALT,
          STATUS,
          CASE_ID,
          TAXA,
@@ -66,29 +63,14 @@ current_run_histmetadata<-left_join(notwaids_current_run, historical_metadata_su
          PatientAddressCounty,
          SubmitterCounty,
          SubmitterName,
-         SpecimenSource) %>%
-  unique()
-
-#Wrangle metadata from new tracker
-bacteriamastermeta_summ<-wabacteriamaster_meta_df %>%
-  mutate(SpecimenDateCollected=as.Date(SpecimenDateCollected, format = "%Y-%m-%d")) %>%
-  mutate(PatientBirthDate=as.Date(PatientBirthDate, format = "%Y-%m-%d")) %>% 
-  select(PHLAccessionNumber,
-         CASE_ID,
-         SpecimenDateCollected,
-         PatientFirstName,
-         PatientLastName,
-         PatientBirthDate,
-         PatientAddressCounty,
-         SubmitterCounty,
-         SubmitterName,
          SpecimenSource)
 
-
-#Add the metadata to the selected information from the summary tsv
-current_run_nonhist_metadata<-left_join(remaining_current_run, bacteriamastermeta_summ, by=c('WA_ID'='PHLAccessionNumber')) %>% 
-  rename(ID = WA_ID) %>% 
+# Left join non-WA IDs on ID_ALT
+non_wa_joined <- non_wa_ids %>%
+  left_join(bacteriamastermeta_summ, by = c("ID" = "ID_ALT"))%>%
+  mutate(ID_ALT=ID) %>% 
   select(ID,
+         ID_ALT,
          STATUS,
          CASE_ID,
          TAXA,
@@ -105,7 +87,7 @@ current_run_nonhist_metadata<-left_join(remaining_current_run, bacteriamastermet
          SpecimenSource)
 
 # Append the two dataframes
-current_run_metadata <- rbind(current_run_nonhist_metadata, current_run_histmetadata)
+current_run_metadata <- rbind(wa_joined, non_wa_joined)
 
 #Group the df by species and then by cluster and split into different dfs
 metadata_grouped <- current_run_metadata %>% 

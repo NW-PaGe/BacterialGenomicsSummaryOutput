@@ -8,8 +8,7 @@ paths <-readLines("paths.txt")
 
 #Load each path separately
 main_folder <- paths[1]
-wabacteriamaster_metadata <- paths[2]
-historical_metadata <- paths[3]
+bacteriatracker.wa <- paths[2]
 
 ##EXTRACTING OUTPUTS FROM MAIN FOLDER##
 #List all subfolders saved in the main folder
@@ -81,18 +80,8 @@ clean_column <- function(column) {
 summary_tsv_cleaned<- summary_tsv %>%
   mutate(ID = clean_column(ID))
          
-##LOAD WABACTERIAMASTER_METADATA#
-wabacteriamaster_meta_df<- read.csv(wabacteriamaster_metadata)
+##LOAD BACTERIA-TRACKER METADATA that originates in the new tracker#
+bacteriatrackerwa_meta_df<- read.csv(bacteriatracker.wa)
 
-##LOAD HISTORICAL_METADATA REFERENCE FILE#
-historical_metadata<- read.csv(historical_metadata)
 
-#DATA CLEANING
-#BigBacter sometimes adds a _T1 to the samples. Remove and clean IDs
-historical_metadata_cleanedids <- historical_metadata %>%
-  mutate(
-    ID = clean_column(ID),
-    WA_ID = clean_column(WA_ID),
-    BB_ID = clean_column(BB_ID),
-    ALT_ID = clean_column(ALT_ID)
-  )
+

@@ -227,7 +227,13 @@ if (nrow(summary_snp_links) == 0) {
             ID = ID1,
             `StrongGenLinks (0-10 SNP)` = StrongGenLinkage,
             `InterGenLinks (11-50 SNP)` = InterGenLinkage
-          )
+          ) %>% 
+         group_by(ID) %>%
+         summarize(
+        `StrongGenLinks (0-10 SNP)` = paste(unique(`StrongGenLinks (0-10 SNP)`)[`StrongGenLinks (0-10 SNP)` != ""], collapse = ", "),
+        `InterGenLinks (11-50 SNP)` = paste(unique(`InterGenLinks (11-50 SNP)`)[`InterGenLinks (11-50 SNP)` != ""], collapse = ", ")
+      ) %>%
+      ungroup()
         
         cat(paste0("#### Genomic linkages for ", source, "\n\n"))
 

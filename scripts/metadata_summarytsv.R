@@ -15,6 +15,7 @@ if (!dir.exists(results_dir)) {
 }
 
 #Wrangle the data
+#Select needed columns from summary_tsv
 current_run_summary<-summary_tsv_cleaned %>% 
   filter(ID!="Reference") %>%
   select(ID, 
@@ -24,48 +25,69 @@ current_run_summary<-summary_tsv_cleaned %>%
          ISO_IN_CLUSTER,
          ISO_PASS_QC)
 
-bacteriamastermeta_summ<-wabacteriamaster_meta_df %>%
-  filter(ASSEMBLY_QC!='FAIL') %>% 
-  mutate(CollectionDate=as.Date(CollectionDate, format = "%Y-%m-%d")) %>%
-  mutate(DOB=as.Date(DOB, format = "%Y-%m-%d")) %>%
-  mutate(BigBacter_Status='STATUS') %>% 
+# Split the current_run_summary into two df based on ID
+wa_ids <- current_run_summary %>% filter(grepl("^WA", ID))
+non_wa_ids <- current_run_summary %>% filter(!grepl("^WA", ID))
+
+#Wrangle metadata from new tracker
+bacteriamastermeta_summ<-bacteriatrackerwa_meta_df %>%
+  mutate(SpecimenDateCollected=as.Date(COLLECTION_DATE, format = "%Y-%m-%d")) %>%
+  mutate(PatientBirthDate=as.Date(PatientBirthDate, format = "%Y-%m-%d")) %>% 
   select(ID,
-         WA_ID,
+         ID_ALT,
          CASE_ID,
-         BigBacter_Status, 
-         SPECIES,
-         CollectionDate,
+         SpecimenDateCollected,
          PatientFirstName,
          PatientLastName,
-         DOB,
+         PatientBirthDate,
          PatientAddressCounty,
          SubmitterCounty,
          SubmitterName,
          SpecimenSource)
 
-
-#Add the metadata to the selected information from the summary tsv so the resulting dataframe only pertains
-#to the current run
-current_run_metadata<-left_join(current_run_summary, bacteriamastermeta_summ, by='ID') %>% 
+# Left join WA IDs on ID
+wa_joined <- wa_ids %>%
+  left_join(bacteriamastermeta_summ, by = "ID")%>% 
   select(ID,
-         WA_ID,
+         ID_ALT,
+         STATUS,
          CASE_ID,
          TAXA,
-         SPECIES,
-         STATUS,
-         BigBacter_Status, 
          CLUSTER,
          ISO_IN_CLUSTER,
          ISO_PASS_QC,
-         CollectionDate,
+         SpecimenDateCollected,
          PatientFirstName,
          PatientLastName,
-         DOB,
+         PatientBirthDate,
          PatientAddressCounty,
          SubmitterCounty,
          SubmitterName,
          SpecimenSource)
 
+# Left join non-WA IDs on ID_ALT
+non_wa_joined <- non_wa_ids %>%
+  left_join(bacteriamastermeta_summ, by = c("ID" = "ID_ALT"))%>%
+  mutate(ID_ALT=ID) %>% 
+  select(ID,
+         ID_ALT,
+         STATUS,
+         CASE_ID,
+         TAXA,
+         CLUSTER,
+         ISO_IN_CLUSTER,
+         ISO_PASS_QC,
+         SpecimenDateCollected,
+         PatientFirstName,
+         PatientLastName,
+         PatientBirthDate,
+         PatientAddressCounty,
+         SubmitterCounty,
+         SubmitterName,
+         SpecimenSource)
+
+# Append the two dataframes
+current_run_metadata <- rbind(wa_joined, non_wa_joined)
 
 #Group the df by species and then by cluster and split into different dfs
 metadata_grouped <- current_run_metadata %>% 
@@ -90,18 +112,18 @@ for (i in seq_along(metadata_grouped)) {
 results <- lapply(metadata_grouped, function(df) {
   
   #Calculate min and max collection dates
-  min_date <- format(min(df$CollectionDate, na.rm = TRUE), format = "%m-%d-%Y")
-  max_date <- format(max(df$CollectionDate, na.rm = TRUE), format = "%m-%d-%Y")
+  min_date <- format(min(df$SpecimenDateCollected, na.rm = TRUE), format = "%m-%d-%Y")
+  max_date <- format(max(df$SpecimenDateCollected, na.rm = TRUE), format = "%m-%d-%Y")
 
   #Extract ID and WA_ID of the new isolates
   new_IDs <- df %>%
-    filter(STATUS == "NEW", !is.na(ID), !is.na(WA_ID)) %>%
-    select(ID, WA_ID)
+    filter(STATUS == "NEW", !is.na(ID)) %>%
+    select(ID)
   
   #Extract ID and WA_ID of all isolates
   all_ids <- df %>%
-    filter(!is.na(ID), !is.na(WA_ID)) %>%
-    select(ID, WA_ID)
+    filter(!is.na(ID)) %>%
+    select(ID)
   
   #Extract unique counties from Submitter County
   all_counties <- unique(na.omit(df$SubmitterCounty))
@@ -124,15 +146,15 @@ results <- lapply(metadata_grouped, function(df) {
   
   #Identify isolates from cases with the same DOB and extract their ID and WA_ID
   same_dob <- df %>%
-    group_by(DOB) %>%
-    filter(n() > 1 & !is.na(DOB)) %>%
-    select(ID, WA_ID, DOB)%>%
-    summarise(IDs = paste(ID, collapse = ", "), WA_IDs = paste(WA_ID, collapse = ", "))
+    group_by(PatientBirthDate) %>%
+    filter(n() > 1 & !is.na(PatientBirthDate)) %>%
+    select(ID, PatientBirthDate)%>%
+    summarise(IDs = paste(ID, collapse = ", "))
   
   #Format the duplicate DOB results
   if (nrow(same_dob) > 0) {
     duplicate_dob_str <- paste(
-      paste0("DOB: ",  same_dob$DOB, " IDs: ",  same_dob$IDs, " WA_IDs: ",  same_dob$WA_IDs),
+      paste0("DOB: ",  same_dob$PatientBirthDate, " IDs: ",  same_dob$IDs),
       collapse = paste0(";\n")
     )
   } else {
@@ -144,11 +166,9 @@ results <- lapply(metadata_grouped, function(df) {
   #If the run only has WA IDs comment out the two lines (140,144) all_ids$ID
   if (nrow(all_ids) > 10) {
     all_ids_str <- paste(paste(all_ids$ID[1:10], 
-                               all_ids$WA_ID[1:10], 
                                collapse = "; "), "Limited output to 10 IDs, but there are more isolates in this genetic cluster")
   } else {
     all_ids_str <- paste(all_ids$ID, 
-                         all_ids$WA_ID, 
                          collapse = "; ")
   }
   
@@ -167,7 +187,6 @@ results <- lapply(metadata_grouped, function(df) {
   #If the run only has WA IDs comment out the line new_IDs$ID
   combined_df$All_IDs <- all_ids_str 
   combined_df$New_IDs <- paste(new_IDs$ID, 
-                               new_IDs$WA_ID, 
                                collapse = "; ")
   combined_df$ISOs_SameCase = duplicate_dob_str
 
@@ -191,7 +210,9 @@ mapping_case_ID<-current_run_metadata%>%
   filter(STATUS=="NEW") %>% 
   mutate(CASE_ID=as.character(CASE_ID)) %>% 
   select(ID,
-         WA_ID,
          CASE_ID)
+
+#Remove row names
+rownames(mapping_case_ID) <- NULL
 
 save(mapping_case_ID, file = file.path(outputs_script_dir, "mapping_case_ID.RData"))

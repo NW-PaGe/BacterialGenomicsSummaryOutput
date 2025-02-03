@@ -25,6 +25,10 @@ current_run_summary<-summary_tsv_cleaned %>%
          ISO_IN_CLUSTER,
          ISO_PASS_QC)
 
+# Filter by TAXA
+current_run_summary <- current_run_summary %>%
+  filter(TAXA == params$taxa) 
+
 # Split the current_run_summary into two df based on ID
 wa_ids <- current_run_summary %>% filter(grepl("^WA", ID))
 non_wa_ids <- current_run_summary %>% filter(!grepl("^WA", ID))
@@ -88,6 +92,10 @@ non_wa_joined <- non_wa_ids %>%
 
 # Append the two dataframes
 current_run_metadata <- rbind(wa_joined, non_wa_joined)
+
+# Filter the combined metadata by TAXA
+current_run_metadata <- current_run_metadata %>%
+  filter(TAXA == params$taxa)
 
 #Group the df by species and then by cluster and split into different dfs
 metadata_grouped <- current_run_metadata %>% 

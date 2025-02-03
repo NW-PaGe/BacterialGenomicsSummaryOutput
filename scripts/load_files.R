@@ -3,6 +3,12 @@
 #the most recent created folder.
 #This script also navigates to where the metadata db is saved and loads the file.
 
+#Create a folder to save the new results by taxa for the rendering of independent reports
+outputs_script_dir <- "outputs_scripts"
+if (!dir.exists(outputs_script_dir)) {
+  dir.create(outputs_script_dir)
+}
+
 #Load the file paths that are saved in the paths.txt file
 paths <-readLines("paths.txt")
 
@@ -80,8 +86,13 @@ clean_column <- function(column) {
 summary_tsv_cleaned<- summary_tsv %>%
   mutate(ID = clean_column(ID))
          
-##LOAD BACTERIA-TRACKER METADATA that originates in the new tracker#
+#LOAD BACTERIA-TRACKER METADATA that originates in the new tracker#
 bacteriatrackerwa_meta_df<- read.csv(bacteriatracker.wa)
 
+#Identify TAXA for generation of reports by taxa
+results_by_taxa<-summary_tsv_cleaned %>% 
+  filter(STATUS == "NEW") %>% 
+  select(TAXA) %>% 
+  unique()
 
-
+write.csv(results_by_taxa, file = file.path(outputs_script_dir, "results_by_taxa.csv"), row.names = FALSE)

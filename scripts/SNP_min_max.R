@@ -3,52 +3,74 @@
 #Outputs files with strong genomic linkages (0-10 SNPs) and intermediate linkages (11-50 SNPs) detected 
 #among the new isolates and the rest in the same genomic cluster
 
-#Create a folder to save the outputs of this script
+# Create a folder to save the outputs of this script
 outputs_script_dir <- "outputs_scripts"
 if (!dir.exists(outputs_script_dir)) {
   dir.create(outputs_script_dir)
 }
 
-#Check that the snp dist long files are loaded
+# Check that the snp dist long files are loaded
 if (!exists("snp_dist_long_list")) {
-  stop("csv_list not found. Make sure the list of dataframes is loaded.")
+  stop("snp_dist_long_list not found. Make sure the list of dataframes is loaded.")
 }
 
-#SNP DISTANCES MIN AND MAX
-#Create an empty list to store the results
+# Extract TAXA from file names (defined outside the loop)
+extract_taxa <- function(filename) {
+  taxa <- str_extract(filename, "(?<=-)[A-Za-z_]+(?=-)")  # Handle underscore in taxa
+  return(taxa)
+}
+
+# Define the taxa to filter
+desired_taxa <- params$taxa
+
+# SNP DISTANCES MIN AND MAX
+# Create an empty list to store the results
 summary_snp_minmax <- list()
 
-#Iterate over each dataframe to calculate max and min
+# Iterate over each dataframe to calculate max and min
 for (summary_Dists in names(snp_dist_long_list)) {
   
-  #Extract the dataframe from the list
-  df_snp <- snp_dist_long_list[[summary_Dists]]
+  # Extract TAXA from filename using the extract_taxa function
+  taxa_in_file <- extract_taxa(summary_Dists)
   
-  #Check if the dataframe has more than 4 rows and calculate max and min SNP distance
-  if (nrow(df_snp) > 4) {
-    snp_minmax <- df_snp %>%
-      filter(ID1 != ID2) %>%
-      filter(ID1 != "Reference") %>%
-      filter(ID2 != "Reference") %>%
-      summarize(
-        MAX = max(dist, na.rm = TRUE),
-        MIN = min(dist, na.rm = TRUE)
-      )
-   
-    #Add the source file name as a column
+  # Trim any leading/trailing spaces to ensure matching
+  taxa_in_file <- str_trim(taxa_in_file)
+  desired_taxa <- str_trim(desired_taxa)
+  
+  # Check if the taxa matches the desired taxa (case-insensitive comparison)
+  if (grepl(desired_taxa, taxa_in_file, ignore.case = TRUE)) {
+    
+    # Extract the dataframe from the list
+    df_snp <- snp_dist_long_list[[summary_Dists]]
+    
+    # Check if the dataframe has more than 4 rows and calculate max and min SNP distance
+    if (nrow(df_snp) > 4) {
+      snp_minmax <- df_snp %>%
+        filter(ID1 != ID2) %>%
+        filter(ID1 != "Reference") %>%
+        filter(ID2 != "Reference") %>%
+        summarize(
+          MAX = max(dist, na.rm = TRUE),
+          MIN = min(dist, na.rm = TRUE)
+        )
+      
+      # Add the source file name as a column
       snp_minmax <- snp_minmax %>%
-      mutate(Source = summary_Dists)%>%
-      select(Source, MAX, MIN) 
-    
-    #Store the summary results
-    summary_snp_minmax[[summary_Dists]] <-snp_minmax
-    
-    #Print the result for verification
-    cat("Summary of Min and Max SNPs for", summary_Dists, ":\n")
-    print(snp_minmax)
-    cat("\n")
+        mutate(Source = summary_Dists) %>%
+        select(Source, MAX, MIN)
+      
+      # Store the summary results
+      summary_snp_minmax[[summary_Dists]] <- snp_minmax
+      
+      # Print the result for verification
+      cat("Summary of Min and Max SNPs for", summary_Dists, ":\n")
+      print(snp_minmax)
+      cat("\n")
+    } else {
+      cat("Skipping", summary_Dists, "as it has 4 or fewer rows.\n")
+    }
   } else {
-    cat("Skipping", summary_Dists, "as it has 4 or fewer rows.\n")
+    cat("Skipping", summary_Dists, "as it does not match the desired taxa.\n")
   }
 }
 
@@ -66,6 +88,16 @@ summary_snp_linkages <- list()
 
 #Iterate over each dataframe to identify strong and intermediate genomic linkages
 for (summary_Linkages in names(snp_dist_long_list)) {
+  
+  # Extract TAXA from filename
+  taxa_in_file <- extract_taxa(summary_Linkages)
+  
+  # Trim any leading/trailing spaces to ensure matching
+  taxa_in_file <- str_trim(taxa_in_file)
+  desired_taxa <- str_trim(desired_taxa)
+  
+  # Check if the taxa matches the desired taxa (case-insensitive comparison)
+  if (grepl(desired_taxa, taxa_in_file, ignore.case = TRUE)) {
   
   #Extract the dataframes from list
   df_links <- snp_dist_long_list[[summary_Linkages]]
@@ -101,6 +133,9 @@ for (summary_Linkages in names(snp_dist_long_list)) {
     cat("\n")
   } else {
     cat("Skipping", summary_Linkages, "as it has 4 or fewer rows.\n")
+  }
+  } else {
+    cat("Skipping", summary_Linkages, "as it does not match the desired taxa.\n")
   }
 }
 

@@ -131,8 +131,11 @@ results <- lapply(metadata_grouped, function(df) {
     select(ID, ID_ALT)
   
   #Extract ID and WA_ID of all isolates
+  #If the run only has WA IDs comment out the the line ID_ALT
   all_ids <- df %>%
-    select(ID, ID_ALT)
+    select(ID,
+           ID_ALT
+           )
   
   #Extract unique counties from Submitter County
   all_counties <- unique(na.omit(df$SubmitterCounty))
@@ -172,7 +175,6 @@ results <- lapply(metadata_grouped, function(df) {
   
   
   #Limit All_IDs to no more than 10
-  #If the run only has WA IDs comment out the two lines that reference all_ids$ID_ALT
   if (nrow(all_ids) > 10) {
     all_ids_str <- paste(apply(all_ids[1:10, ], 1, function(x) paste(na.omit(x), collapse = " ")), collapse = "; ")
     all_ids_str <- paste(all_ids_str, "Limited output to 10 IDs, but there are more isolates in this genetic cluster")
@@ -192,7 +194,7 @@ results <- lapply(metadata_grouped, function(df) {
   )
   
   #Attach New Status Data and All IDs as separate columns
-  #If the run only has WA IDs comment out the line ID_ALT
+  #If the run only has WA IDs comment out the line new_IDs$ID_ALT
   combined_df$All_IDs <- all_ids_str 
   combined_df$New_IDs <- paste(new_IDs$ID,
                                new_IDs$ID_ALT,

@@ -25,6 +25,10 @@ current_run_summary<-summary_tsv_cleaned %>%
          ISO_IN_CLUSTER,
          ISO_PASS_QC)
 
+# Filter by TAXA
+current_run_summary <- current_run_summary %>%
+  filter(TAXA == params$taxa) 
+
 # Split the current_run_summary into two df based on ID
 wa_ids <- current_run_summary %>% filter(grepl("^WA", ID))
 non_wa_ids <- current_run_summary %>% filter(!grepl("^WA", ID))
@@ -33,7 +37,8 @@ non_wa_ids <- current_run_summary %>% filter(!grepl("^WA", ID))
 bacteriamastermeta_summ<-bacteriatrackerwa_meta_df %>%
   mutate(SpecimenDateCollected=as.Date(COLLECTION_DATE, format = "%Y-%m-%d")) %>%
   mutate(PatientBirthDate=as.Date(PatientBirthDate, format = "%Y-%m-%d")) %>% 
-  select(ID,
+  mutate(WA_ID=ID)%>% 
+  select(WA_ID,
          ID_ALT,
          CASE_ID,
          SpecimenDateCollected,
@@ -47,7 +52,7 @@ bacteriamastermeta_summ<-bacteriatrackerwa_meta_df %>%
 
 # Left join WA IDs on ID
 wa_joined <- wa_ids %>%
-  left_join(bacteriamastermeta_summ, by = "ID")%>% 
+  left_join(bacteriamastermeta_summ, by = c("ID" = "WA_ID"))%>% 
   select(ID,
          ID_ALT,
          STATUS,
@@ -68,7 +73,8 @@ wa_joined <- wa_ids %>%
 # Left join non-WA IDs on ID_ALT
 non_wa_joined <- non_wa_ids %>%
   left_join(bacteriamastermeta_summ, by = c("ID" = "ID_ALT"))%>%
-  mutate(ID_ALT=ID) %>% 
+  mutate(ID_ALT= ID) %>% 
+  mutate(ID= WA_ID) %>% 
   select(ID,
          ID_ALT,
          STATUS,
@@ -88,6 +94,10 @@ non_wa_joined <- non_wa_ids %>%
 
 # Append the two dataframes
 current_run_metadata <- rbind(wa_joined, non_wa_joined)
+
+# Filter the combined metadata by TAXA
+current_run_metadata <- current_run_metadata %>%
+  filter(TAXA == params$taxa)
 
 #Group the df by species and then by cluster and split into different dfs
 metadata_grouped <- current_run_metadata %>% 
@@ -117,13 +127,15 @@ results <- lapply(metadata_grouped, function(df) {
 
   #Extract ID and WA_ID of the new isolates
   new_IDs <- df %>%
-    filter(STATUS == "NEW", !is.na(ID)) %>%
-    select(ID)
+    filter(STATUS == "NEW") %>%
+    select(ID, ID_ALT)
   
   #Extract ID and WA_ID of all isolates
+  #If the run only has WA IDs comment out the the line ID_ALT
   all_ids <- df %>%
-    filter(!is.na(ID)) %>%
-    select(ID)
+    select(ID,
+           ID_ALT
+           )
   
   #Extract unique counties from Submitter County
   all_counties <- unique(na.omit(df$SubmitterCounty))
@@ -144,12 +156,12 @@ results <- lapply(metadata_grouped, function(df) {
                                    unlist()
   
   
-  #Identify isolates from cases with the same DOB and extract their ID and WA_ID
+  #Identify isolates from cases with the same DOB and extract their IDs
   same_dob <- df %>%
     group_by(PatientBirthDate) %>%
     filter(n() > 1 & !is.na(PatientBirthDate)) %>%
-    select(ID, PatientBirthDate)%>%
-    summarise(IDs = paste(ID, collapse = ", "))
+    select(ID, ID_ALT, PatientBirthDate)%>%
+    summarise(IDs = paste(ID, collapse = ", "), ID_ALT = paste(ID_ALT, collapse = ", "))
   
   #Format the duplicate DOB results
   if (nrow(same_dob) > 0) {
@@ -163,13 +175,11 @@ results <- lapply(metadata_grouped, function(df) {
   
   
   #Limit All_IDs to no more than 10
-  #If the run only has WA IDs comment out the two lines (140,144) all_ids$ID
   if (nrow(all_ids) > 10) {
-    all_ids_str <- paste(paste(all_ids$ID[1:10], 
-                               collapse = "; "), "Limited output to 10 IDs, but there are more isolates in this genetic cluster")
+    all_ids_str <- paste(apply(all_ids[1:10, ], 1, function(x) paste(na.omit(x), collapse = " ")), collapse = "; ")
+    all_ids_str <- paste(all_ids_str, "Limited output to 10 IDs, but there are more isolates in this genetic cluster")
   } else {
-    all_ids_str <- paste(all_ids$ID, 
-                         collapse = "; ")
+    all_ids_str <- paste(apply(all_ids, 1, function(x) paste(na.omit(x), collapse = " ")), collapse = "; ")
   }
   
   #Create a data frame for the combined results
@@ -184,9 +194,10 @@ results <- lapply(metadata_grouped, function(df) {
   )
   
   #Attach New Status Data and All IDs as separate columns
-  #If the run only has WA IDs comment out the line new_IDs$ID
+  #If the run only has WA IDs comment out the line new_IDs$ID_ALT
   combined_df$All_IDs <- all_ids_str 
-  combined_df$New_IDs <- paste(new_IDs$ID, 
+  combined_df$New_IDs <- paste(new_IDs$ID,
+                               new_IDs$ID_ALT,
                                collapse = "; ")
   combined_df$ISOs_SameCase = duplicate_dob_str
 
@@ -210,6 +221,7 @@ mapping_case_ID<-current_run_metadata%>%
   filter(STATUS=="NEW") %>% 
   mutate(CASE_ID=as.character(CASE_ID)) %>% 
   select(ID,
+         ID_ALT,
          CASE_ID)
 
 #Remove row names

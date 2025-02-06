@@ -7,6 +7,8 @@ author:
 format: 
   html:
     self-contained: true
+params:
+  taxa: "Klebsiella_pneumoniae" 
 ---
 
 ```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}
@@ -24,6 +26,21 @@ source("scripts/load_files.R")
 source("scripts/summarytsv_outputs.R")
 source("scripts/SNP_min_max.R")
 source("scripts/metadata_summarytsv.R")
+```
+
+```{r taxa, echo = FALSE}
+# Load the taxa dataset
+results_by_taxa <- read.csv("outputs_scripts/results_by_taxa.csv", stringsAsFactors = FALSE)
+
+# Filter for the specific taxa
+taxa_data <- results_by_taxa %>%
+  filter(TAXA == params$taxa)
+
+# Check if data is available for this taxa
+if (nrow(taxa_data) == 0) {
+  cat("No data available for this taxa.")
+  knitr::knit_exit()  # Stops execution for empty reports
+}
 ```
 
 ## Overview New Samples
@@ -264,6 +281,12 @@ results_dir <- "metadata_summ"
 
 rdata_files <- list.files(results_dir, pattern = "\\.RData$", full.names = TRUE)
 
+#Extract taxa from the filename
+extract_taxa <- function(filename) {
+  parts <- unlist(strsplit(filename, "_"))  # Split by underscore
+  return(paste(parts[1], parts[2], sep = "_"))  # Combine first two parts
+}
+
 #Empty list to store all data frames
 all_data <- list()
 
@@ -271,10 +294,12 @@ all_data <- list()
 for (file in rdata_files) {
   load(file)
   file_name <- file_path_sans_ext(basename(file))
+  taxa_name <- extract_taxa(file_name)
   
   #Add a new column to the data frame with the file name
   combined_df <- combined_df %>%
     mutate(Taxa_GenomicCluster = file_name)%>%
+    filter(taxa_name == params$taxa)%>%
     select(Taxa_GenomicCluster, everything())
   
   #Store the modified data frame in the list

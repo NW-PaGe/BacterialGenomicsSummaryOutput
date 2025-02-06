@@ -10,7 +10,7 @@ if (!dir.exists(outputs_script_dir)) {
 ##OVERVIEW NEW SEQUENCES
 #Identify new results to get an overview of the new sequences
 newseq<-summary_tsv_cleaned %>%
-  filter(STATUS=="NEW") %>%
+  filter(STATUS=="NEW", TAXA == params$taxa) %>%
   mutate(GENOMIC_CLUSTER=CLUSTER) %>% 
   select(ID,
          QUAL,
@@ -23,7 +23,8 @@ save(newseq, file = file.path(outputs_script_dir, "newseq.RData"))
 
 ##RECOMBINATION
 #Data wrangling
-recomb<-summary_tsv_cleaned %>%
+recomb<-summary_tsv_cleaned %>%  
+  filter(TAXA == params$taxa) %>% 
   mutate(GENOMIC_CLUSTER=CLUSTER)%>% 
   filter(ISO_IN_CLUSTER!= 1 & ISO_IN_CLUSTER!=2) %>% 
   filter(QUAL!="FAIL") %>% 
@@ -45,7 +46,7 @@ save(recomb_summary, file = file.path(outputs_script_dir, "recomb_summary.RData"
 ##FAILED SEQUENCES
 #Data wrangling
 failed<-summary_tsv_cleaned %>% 
-  filter(QUAL=="FAIL") %>% 
+  filter(QUAL=="FAIL", TAXA == params$taxa) %>% 
   mutate(GENOMIC_CLUSTER=CLUSTER) %>% 
   select(ID,
          STATUS,

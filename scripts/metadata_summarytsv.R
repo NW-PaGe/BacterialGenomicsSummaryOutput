@@ -128,14 +128,16 @@ results <- lapply(metadata_grouped, function(df) {
   #Extract ID and WA_ID of the new isolates
   new_IDs <- df %>%
     filter(STATUS == "NEW") %>%
-    select(ID, ID_ALT)
+    select(ID, ID_ALT)%>% 
+    distinct()
   
   #Extract ID and WA_ID of all isolates
   #If the run only has WA IDs comment out the the line ID_ALT
   all_ids <- df %>%
     select(ID,
            ID_ALT
-           )
+           ) %>% 
+    distinct()
   
   #Extract unique counties from Submitter County
   all_counties <- unique(na.omit(df$SubmitterCounty))
@@ -222,7 +224,8 @@ mapping_case_ID<-current_run_metadata%>%
   mutate(CASE_ID=as.character(CASE_ID)) %>% 
   select(ID,
          ID_ALT,
-         CASE_ID)
+         CASE_ID) %>% 
+  distinct()
 
 #Remove row names
 rownames(mapping_case_ID) <- NULL

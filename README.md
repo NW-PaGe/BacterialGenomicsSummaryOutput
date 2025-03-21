@@ -11,5 +11,5 @@ Before rendering the report double check the following:
 
 ## HTML Report with Dummy Data
 
-View the resulting HTML report with dummy data here:
+View the resulting HTML report with dummy data here: https://nw-page.github.io/BacterialGenomicsSummaryOutput/
 

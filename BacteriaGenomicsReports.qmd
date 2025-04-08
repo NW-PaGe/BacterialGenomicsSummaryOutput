@@ -321,7 +321,7 @@ kable(final_metadata) %>%
   row_spec(0, bold = TRUE)
 
 ```
-
+*Isolates listed as having the same DOB might or might not be isolates from the same case. Check against epi data to confirm isolates listed are indeed from the same case.*
 
 
 ## Resources

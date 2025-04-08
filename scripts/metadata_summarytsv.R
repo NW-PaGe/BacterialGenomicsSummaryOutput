@@ -201,7 +201,7 @@ results <- lapply(metadata_grouped, function(df) {
   combined_df$New_IDs <- paste(new_IDs$ID,
                                new_IDs$ID_ALT,
                                collapse = "; ")
-  combined_df$ISOs_SameCase = duplicate_dob_str
+  combined_df$Same_DOB_New_Isolates = duplicate_dob_str
 
   
   return(combined_df)

@@ -99,7 +99,6 @@ write.csv(results_by_taxa, file = file.path(outputs_script_dir, "results_by_taxa
 
 ##IDENTIFY AND LOAD MICROREACT FILES##
 #Identify the .microreact files
-
 # Create a folder to save the extracted microreact files
 microreact_dir <- "microreact"
 if (!dir.exists(microreact_dir)) {
@@ -113,19 +112,23 @@ microreact_files <- files_in_most_recent_folder[grepl("\\.microreact$", files_in
 # Extract each .microreact file to its respective subfolder
 lapply(microreact_files, function(microreact_file) {
   
-  # Create a subfolder for the current file
+  # Create a subfolder for the current file based on the file name
   subfolder_name <- tools::file_path_sans_ext(basename(microreact_file))  # Remove .microreact extension for folder name
   subfolder_path <- file.path(microreact_dir, subfolder_name)
   
-  if (!dir.exists(subfolder_path)) {
-    dir.create(subfolder_path)
+  # Clean the subfolder by removing its contents if it exists
+  if (dir.exists(subfolder_path)) {
+    unlink(subfolder_path, recursive = TRUE)  # Delete the subfolder and its contents
   }
   
-  # Extract the contents of the microreact files
-  microreact_data <- fromJSON(microreact_file)
+  # Create the subfolder again
+  dir.create(subfolder_path)
   
-  # Write the original microreact files into the subfolder
+  # Copy the original .microreact file into the subfolder
   output_file <- file.path(subfolder_path, basename(microreact_file))
-  write_json(microreact_data, output_file, pretty = TRUE, auto_unbox = TRUE)
   
+  # Ensure the .microreact file is copied as is (no modification)
+  file.copy(microreact_file, output_file)
+  
+  message("Copied ", microreact_file, " to ", output_file)
 })

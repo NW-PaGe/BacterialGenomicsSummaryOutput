@@ -50,6 +50,7 @@ rsconnect/
 paths.txt
 metadata_summ/
 outputs_scripts/
+microreact/
 
 # Report
 BacteriaGenomicsReports.html

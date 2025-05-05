@@ -8,7 +8,7 @@ format:
   html:
     self-contained: true
 params:
-  taxa: "Klebsiella_pneumoniae" 
+  taxa: "Shigella_flexneri" 
 ---
 
 ```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}
@@ -19,6 +19,9 @@ library(tidyverse)
 library(lubridate)
 library(tools)
 library(htmltools)
+library(fs)
+library(base64enc)
+library(rjson)
 ```
 
 ```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}
@@ -242,12 +245,14 @@ if (nrow(summary_snp_links) == 0) {
           select(-Source, -STATUS) %>%
           rename(
             ID = ID1,
-            `StrongGenLinks (0-10 SNP)` = StrongGenLinkage,
+            `VeryStrongGenLinks (0-5 SNP)` = VeryStrongGenLinkage,
+            `StrongGenLinks (6-10 SNP)` = StrongGenLinkage,
             `InterGenLinks (11-50 SNP)` = InterGenLinkage
           ) %>% 
          group_by(ID) %>%
          summarize(
-          `StrongGenLinks (0-10 SNP)` = str_remove(str_replace_all(paste(na.omit(unique(`StrongGenLinks (0-10 SNP)`)), collapse = ", "), "\\s*,\\s*,", ", "), "^,\\s*"),
+          `VeryStrongGenLinks (0-5 SNP)` = str_remove(str_replace_all(paste(na.omit(unique(`VeryStrongGenLinks (0-5 SNP)`)), collapse = ", "), "\\s*,\\s*,", ", "), "^,\\s*"),
+          `StrongGenLinks (6-10 SNP)` = str_remove(str_replace_all(paste(na.omit(unique(`StrongGenLinks (6-10 SNP)`)), collapse = ", "), "\\s*,\\s*,", ", "), "^,\\s*"),
 `InterGenLinks (11-50 SNP)` = str_remove(str_replace_all(paste(na.omit(unique(`InterGenLinks (11-50 SNP)`)), collapse = ", "), "\\s*,\\s*,", ", "), "^,\\s*")
     ) %>%
       ungroup()

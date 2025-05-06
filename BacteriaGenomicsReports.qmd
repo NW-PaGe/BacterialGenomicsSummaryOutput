@@ -211,7 +211,7 @@ if (nrow(summary_snp) > 0) {
 
 ## Genomic Linkages
 
-Based on the SNP distances these are the strong (0-10 SNPs) and intermediate (11-50 SNPs) linkages found among the new isolate/s and other sequences in the corresponding genomic clusters.
+Based on the SNP distances these are the very strong (0-5 SNPs), strong (6-10 SNPs) and intermediate (11-50 SNPs) genomic linkages found among the new isolate/s and other sequences in the corresponding genomic clusters.
 
 ```{r genomic_linkages_tables, echo=FALSE, results='asis'}
 

@@ -79,11 +79,9 @@ for (file in parsed_files) {
   # Get the subfolder path where the .microreact file is located
   subfolder_path <- dirname(file)
   
-  # Write new metadata CSV
+  # Write new metadata CSV use write.table instead of write_csv for compatibility
   output_csv <- file.path(subfolder_path, paste0("waid_", file_path_sans_ext(basename(file)), ".csv"))
-  write_csv(joined_df, output_csv)
   
-  # Use write.table instead of write_csv for compatibility
   write.table(joined_df, file = output_csv, quote = FALSE, row.names = FALSE, sep = ",")
   
   message("Parsed and joined metadata saved to: ", output_csv)
@@ -110,3 +108,4 @@ for (file in parsed_files) {
     warning("No or multiple .microreact files found in: ", subfolder_path)
   }
 }
+

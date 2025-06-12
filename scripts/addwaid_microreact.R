@@ -47,7 +47,7 @@ for (subfolder in subfolders) {
   lapply(mr_files, parse_microreact_metadata)
 }
 
-# PART II: Add the WA ID to the metadata microreact file and output the edited .microreact##
+# PART II: Add the WA ID to the metadata microreact file and output the edited .microreact file
 # Locate all parsed metadata CSVs
 parsed_files <- list.files(
   path = "microreact",
@@ -80,7 +80,7 @@ for (file in parsed_files) {
   subfolder_path <- dirname(file)
   
   # Write new metadata CSV use write.table instead of write_csv for compatibility
-  output_csv <- file.path(subfolder_path, paste0("waid_", file_path_sans_ext(basename(file)), ".csv"))
+  output_csv <- file.path(subfolder_path, paste0("waid-", file_path_sans_ext(basename(file)), ".csv"))
   
   write.table(joined_df, file = output_csv, quote = FALSE, row.names = FALSE, sep = ",")
   
@@ -100,7 +100,7 @@ for (file in parsed_files) {
     csv_content <- paste(readLines(output_csv), collapse = "\n")
     mr.file$files$metadata$blob <- csv_content
     
-    new_mr_path <- file.path(subfolder_path, paste0("waid_", file_path_sans_ext(basename(mr_file)), ".microreact"))
+    new_mr_path <- file.path(subfolder_path, paste0("waid-", file_path_sans_ext(basename(mr_file)), ".microreact"))
     write(toJSON(mr.file), file = new_mr_path)
     
     message("Updated .microreact file saved to: ", new_mr_path)

@@ -110,7 +110,7 @@ files_in_most_recent_folder <- list.files(most_recent_folder, full.names = TRUE)
 microreact_files <- files_in_most_recent_folder[grepl("\\.microreact$", files_in_most_recent_folder)]
 
 # Extract each .microreact file to its respective subfolder
-lapply(microreact_files, function(microreact_file) {
+invisible(lapply(microreact_files, function(microreact_file) {
   
   # Create a subfolder for the current file based on the file name
   subfolder_name <- tools::file_path_sans_ext(basename(microreact_file))  # Remove .microreact extension for folder name
@@ -124,11 +124,14 @@ lapply(microreact_files, function(microreact_file) {
   # Create the subfolder again
   dir.create(subfolder_path)
   
+  # Modify the file name: remove leading digits and dash (e.g., "1749579764-")
+  original_filename <- basename(microreact_file)
+  modified_filename <- sub("^[0-9]+-", "", original_filename)
+  
   # Copy the original .microreact file into the subfolder
-  output_file <- file.path(subfolder_path, basename(microreact_file))
+  output_file <- file.path(subfolder_path, basename(modified_filename))
   
   # Ensure the .microreact file is copied as is (no modification)
   file.copy(microreact_file, output_file)
   
-  message("Copied ", microreact_file, " to ", output_file)
-})
+}))

@@ -115,11 +115,12 @@ for (summary_Linkages in names(snp_dist_long_list)) {
         str_starts(ID2, regex("[0-9]{4}")) ~ substr(ID2, 1, 12),
         str_ends(ID2, "_T1") ~ str_remove(ID2, "_T1"),
         TRUE ~ ID2)) %>%
-    mutate(StrongGenLinkage= ifelse(dist >=0 & dist<=10, ID2, ""),
+    mutate(VeryStrongGenLinkage= ifelse(dist >=0 & dist<=5, ID2, ""),
+           StrongGenLinkage= ifelse(dist >=6 & dist<=10, ID2, ""),
            InterGenLinkage= ifelse(dist >=11 & dist<=50, ID2, "")) %>%
-    filter(StrongGenLinkage != "" | InterGenLinkage != "") %>%
+    filter(VeryStrongGenLinkage != "" | StrongGenLinkage != "" | InterGenLinkage != "") %>%
     mutate(Source = summary_Linkages) %>%
-    select(Source, ID1, StrongGenLinkage, InterGenLinkage)
+    select(Source, ID1, VeryStrongGenLinkage, StrongGenLinkage, InterGenLinkage)
     
     snp_links <- snp_links %>%
     left_join(isolates_run_summ, by = c("ID1" = "ID"))

@@ -96,3 +96,42 @@ results_by_taxa<-summary_tsv_cleaned %>%
   unique()
 
 write.csv(results_by_taxa, file = file.path(outputs_script_dir, "results_by_taxa.csv"), row.names = FALSE)
+
+##IDENTIFY AND LOAD MICROREACT FILES##
+#Identify the .microreact files
+# Create a folder to save the extracted microreact files
+microreact_dir <- "microreact"
+if (!dir.exists(microreact_dir)) {
+  dir.create(microreact_dir)
+}
+
+# Locate all .microreact files in the most recent folder
+files_in_most_recent_folder <- list.files(most_recent_folder, full.names = TRUE)
+microreact_files <- files_in_most_recent_folder[grepl("\\.microreact$", files_in_most_recent_folder)]
+
+# Extract each .microreact file to its respective subfolder
+invisible(lapply(microreact_files, function(microreact_file) {
+  
+  # Create a subfolder for the current file based on the file name
+  subfolder_name <- tools::file_path_sans_ext(basename(microreact_file))  # Remove .microreact extension for folder name
+  subfolder_path <- file.path(microreact_dir, subfolder_name)
+  
+  # Clean the subfolder by removing its contents if it exists
+  if (dir.exists(subfolder_path)) {
+    unlink(subfolder_path, recursive = TRUE)  # Delete the subfolder and its contents
+  }
+  
+  # Create the subfolder again
+  dir.create(subfolder_path)
+  
+  # Modify the file name: remove leading digits and dash (e.g., "1749579764-")
+  original_filename <- basename(microreact_file)
+  modified_filename <- sub("^[0-9]+-", "", original_filename)
+  
+  # Copy the original .microreact file into the subfolder
+  output_file <- file.path(subfolder_path, basename(modified_filename))
+  
+  # Ensure the .microreact file is copied as is (no modification)
+  file.copy(microreact_file, output_file)
+  
+}))

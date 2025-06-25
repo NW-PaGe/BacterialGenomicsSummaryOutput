@@ -163,13 +163,13 @@ results <- lapply(metadata_grouped, function(df) {
     group_by(PatientBirthDate) %>%
     filter(n() > 1 & !is.na(PatientBirthDate)) %>%
     select(ID, ID_ALT, PatientBirthDate)%>%
-    summarise(IDs = paste(ID, collapse = ", "), ID_ALT = paste(ID_ALT, collapse = ", "))
+    summarise(IDs = paste(ID, collapse = ","), ID_ALT = paste(ID_ALT, collapse = ","))
   
   #Format the duplicate DOB results
   if (nrow(same_dob) > 0) {
     duplicate_dob_str <- paste(
-      paste0("DOB: ",  same_dob$PatientBirthDate, " IDs: ",  same_dob$IDs),
-      collapse = paste0(";\n")
+      paste0(" [DOB: ",  same_dob$PatientBirthDate, " IDs: ",  same_dob$IDs),
+      collapse = "]"
     )
   } else {
     duplicate_dob_str <- "No isolates from the same case"
@@ -201,7 +201,7 @@ results <- lapply(metadata_grouped, function(df) {
   combined_df$New_IDs <- paste(new_IDs$ID,
                                new_IDs$ID_ALT,
                                collapse = "; ")
-  combined_df$Same_DOB_New_Isolates = duplicate_dob_str
+  combined_df$Same_DOB_Isolates = duplicate_dob_str
 
   
   return(combined_df)

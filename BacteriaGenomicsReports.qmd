@@ -8,7 +8,7 @@ format:
   html:
     self-contained: true
 params:
-  taxa: "Shigella_flexneri" 
+  taxa: "Placeholder"
 ---
 
 ```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}

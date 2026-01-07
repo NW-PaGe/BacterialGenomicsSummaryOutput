@@ -12,6 +12,7 @@ if (!dir.exists(outputs_script_dir)) {
 #Load the file paths that are saved in the paths.txt file
 paths <-readLines("paths.txt")
 
+
 #Load each path separately
 main_folder <- paths[1]
 bacteriatracker.wa <- paths[2]
@@ -26,8 +27,35 @@ folder_info <- data.frame(
   creation_time = file.info(subfolders)$ctime
 )
 
-#Find the most recently created folder
-most_recent_folder <- folder_info[which.max(folder_info$creation_time), "folder"]
+# Identify folders that contain at least one CSV with the taxa in the filename
+folder_info$has_taxa <- vapply(
+  folder_info$folder,
+  function(fld) {
+    csv_files <- list.files(
+      fld,
+      pattern = "\\.csv$",
+      full.names = FALSE
+    )
+    any(grepl(params$taxa, csv_files, ignore.case = TRUE))
+  },
+  logical(1)
+)
+
+# Keep only folders that match the taxa
+valid_folders <- subset(folder_info, has_taxa)
+
+# Safety check
+if (nrow(valid_folders) == 0) {
+  stop(paste(
+    "No folders found containing CSV files for taxa:",
+    taxa
+  ))
+}
+
+#Find the most recently created folder within the folders that match the taxa
+most_recent_folder <- valid_folders$folder[
+  which.max(valid_folders$creation_time)
+]
 
 #List all CSV files in the most recent folder
 csv_files_in_recent_folder <- list.files(most_recent_folder, pattern = "\\.csv$", full.names = TRUE)

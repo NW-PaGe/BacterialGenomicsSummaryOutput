@@ -50,14 +50,25 @@ if (nrow(taxa_data) == 0) {
 
 There are `r nrow(newseq)` new sequencing results in this BigBacter run.
 
-This is the mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
+This is a summary table which includes sample metadata and mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
 ```{r overview_new_samples_table, echo = FALSE}
-mapping_file <- file.path("outputs_scripts", "mapping_case_ID.RData")
+summary_table <- file.path("outputs_scripts", "summary_table.RData")
 
-load(mapping_file)
+load(summary_table)
+
+#Rename Columns
+summary_table_display <- summary_table %>%
+  rename(
+    "WA ID" = ID,
+    "ALT ID" = ID_ALT,
+    "WDRS ID" = CASE_ID,
+    "Collection Date" = SpecimenDateCollected,
+    "Patient County" = PatientAddressCounty,
+    "Submitter County" = SubmitterCounty
+  )
 
 #Table attributes
-kable(mapping_case_ID) %>%
+kable(summary_table_display) %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed", "responsive"),
     full_width = FALSE,

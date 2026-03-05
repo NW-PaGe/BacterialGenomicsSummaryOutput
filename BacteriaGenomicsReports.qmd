@@ -2,13 +2,14 @@
 title: "Bacterial Genomics - Summary Report"
 date: today
 author: 
-  - name: "Marcela Torres <br> Dahlia Walters"
+  - name: "Marcela Torres <br> Dahlia Walters <br> Shawn Hawken"
     affiliation: "Molecular Epidemiology Program, WA DOH"
 format: 
   html:
     self-contained: true
 params:
-  taxa: "Klebsiella_pneumoniae" 
+  taxa: "Klebsiella_pneumoniae"
+  phylogeny: "Gubbins"
 ---
 
 ```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}

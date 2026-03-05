@@ -16,8 +16,7 @@ newseq<-summary_tsv_cleaned %>%
          QUAL,
          TAXA,
          GENOMIC_CLUSTER,
-         ISO_IN_CLUSTER,
-         ISO_PASS_QC)
+         ISO_IN_CLUSTER)
 
 save(newseq, file = file.path(outputs_script_dir, "newseq.RData"))
 

@@ -9,6 +9,7 @@ format:
     self-contained: true
 params:
   taxa: "Placeholder"
+  phylogeny: "all" #defaults to showing both Snippy and Gubbins results but the renderind script will override this if Gubbins or Snippy are selected
 ---
 
 ```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}
@@ -29,6 +30,7 @@ source("scripts/summarytsv_outputs.R")
 source("scripts/SNP_min_max.R")
 source("scripts/metadata_summarytsv.R") 
 source("scripts/addwaid_microreact.R")
+source("scripts/partition_info.R")
 ```
 
 ```{r taxa, echo = FALSE}
@@ -44,6 +46,17 @@ if (nrow(taxa_data) == 0) {
   cat("No data available for this taxa.")
   knitr::knit_exit()  # Stops execution for empty reports
 }
+```
+
+
+```{r phylogeny, echo = FALSE}
+valid_phylogenies <- c("Snippy", "Gubbins", "all")
+
+if (!(params$phylogeny %in% valid_phylogenies)) {
+  stop("Invalid phylogeny parameter. Choose 'Snippy', 'Gubbins', or 'all'.")
+}
+
+phylogeny <- params$phylogeny
 ```
 
 ## Overview New Samples
@@ -80,17 +93,53 @@ kable(summary_table_display) %>%
 
 ```
 
-The new isolates were classified by BigBacter as follows:
+The new isolates were analyzed using **`r tools::toTitleCase(params$phylogeny)`** and classified by BigBacter as follows:
 ```{r new_isolates_table, echo = FALSE}
 outputs_script_dir <- "outputs_scripts"
 
+# Load new sequences
 newseq_file <- list.files(outputs_script_dir, pattern = "newseq.RData$", full.names = TRUE)
-
 loaded_newseq <- load(newseq_file[1])
-
 summary_new_seq <- bind_rows(get(loaded_newseq[1]))
 
-#Table attributes
+# Load partition_info
+partition_file <- list.files(outputs_script_dir, pattern = "partition_info.RData$", full.names = TRUE)
+loaded_partition <- load(partition_file[1])
+partition_info <- get(loaded_partition[1])
+
+# Filter and rename partition columns based on phylogeny parameter
+if (params$phylogeny == "Snippy") {
+  partition_info_filtered <- partition_info %>%
+    select(ID_clean, PARTITION_Snippy, PARTITION_Snippy_Counts) %>%
+    rename(
+      PARTITION = PARTITION_Snippy,
+      ISO_IN_PARTITION = PARTITION_Snippy_Counts
+    )
+} else if (params$phylogeny == "Gubbins") {
+  partition_info_filtered <- partition_info %>%
+    select(ID_clean, PARTITION_Gubbins, PARTITION_Gubbins_Counts) %>%
+    rename(
+      PARTITION = PARTITION_Gubbins,
+      ISO_IN_PARTITION = PARTITION_Gubbins_Counts
+    )
+} else if (params$phylogeny == "all") {
+  # Keep both Snippy and Gubbins columns
+  partition_info_filtered <- partition_info %>%
+    select(ID_clean, PARTITION_Snippy, PARTITION_Snippy_Counts,
+           PARTITION_Gubbins, PARTITION_Gubbins_Counts) %>%
+    rename(
+      ISO_IN_PARTITION_Snippy = PARTITION_Snippy_Counts,
+      ISO_IN_PARTITION_Gubbins = PARTITION_Gubbins_Counts
+    )
+} else {
+  stop("Invalid phylogeny parameter. Choose 'Snippy', 'Gubbins', or 'all'.")
+}
+
+# Join partition info to summary_new_seq
+summary_new_seq <- summary_new_seq %>%
+  left_join(partition_info_filtered, by = c("ID" = "ID_clean"))
+
+# Table rendering
 kable(summary_new_seq) %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed", "responsive"),
@@ -102,6 +151,7 @@ kable(summary_new_seq) %>%
   row_spec(0, bold = TRUE)
 
 ```
+*Sequences that resulted in new genetic clusters are excluded from tree partitioning.*
 
 Of these, the following isolates resulted in new genetic clusters:
 
@@ -191,7 +241,7 @@ if (nrow(summary_recomb) > 0) {
 
 ## SNP Min and Max Distances
 
-The minimum and maximum SNP distances for each genomic cluster by each method, Snippy and Gubbins, are summarized below
+The minimum and maximum SNP distances calculated using **`r tools::toTitleCase(params$phylogeny)`** are summarized below.
 
 ```{r snp_min_max_table, echo = FALSE}
 outputs_script_dir <- "outputs_scripts"
@@ -201,6 +251,18 @@ snpminmax_file <- list.files(outputs_script_dir, pattern = "summary_snp_minmax.R
 loaded_snp_minmax <- load(snpminmax_file[1])
 
 summary_snp <- bind_rows(get(loaded_snp_minmax[1]))
+
+# Filter rows based on selected phylogeny (all, Snippy, or Gubbins)
+if (params$phylogeny %in% c("Snippy", "Gubbins")) {
+  summary_snp <- summary_snp %>%
+    filter(grepl(params$phylogeny, Source, ignore.case = TRUE))
+} else if (params$phylogeny == "all") {
+  # Keep all rows
+  summary_snp <- summary_snp
+} else {
+  stop("Invalid phylogeny parameter. Choose 'Snippy', 'Gubbins', or 'all'.")
+}
+
 
 if (nrow(summary_snp) > 0) {
   kable(summary_snp) %>%
@@ -222,7 +284,7 @@ if (nrow(summary_snp) > 0) {
 
 ## Genomic Linkages
 
-Based on the SNP distances these are the very strong (0-5 SNPs), strong (6-10 SNPs) and intermediate (11-50 SNPs) genomic linkages found among the new isolate/s and other sequences in the corresponding genomic clusters.
+Based on the SNP distances calculated using **`r tools::toTitleCase(params$phylogeny)`**, the following **very strong (0–5 SNPs)**, **strong (6–10 SNPs)**, and **intermediate (11–50 SNPs)** genomic linkages were identified between the new isolate(s) and other sequences within the corresponding genomic clusters.
 
 ```{r genomic_linkages_tables, echo=FALSE, results='asis'}
 
@@ -231,8 +293,6 @@ outputs_script_dir <- "outputs_scripts"
 
 snplinks_file <- list.files(outputs_script_dir, pattern = "summary_snp_linkages.RData$", full.names = TRUE)
 loaded_snp_links <- load(snplinks_file[1])
-
-
 summary_snp_links <- bind_rows(get(loaded_snp_links[1]))
 
 if (nrow(summary_snp_links) == 0) {
@@ -245,6 +305,22 @@ if (nrow(summary_snp_links) == 0) {
 
     cat("Genomic linkages were not detected among the new sequence/s and the other isolates in that genomic cluster\n")
   } else {
+    
+   # Filter by phylogeny parameter
+    if (params$phylogeny %in% c("Snippy", "Gubbins")) {
+      summary_snp_links <- summary_snp_links %>%
+        filter(grepl(params$phylogeny, Source, ignore.case = TRUE))
+    } else if (params$phylogeny == "all") {
+      # keep all rows
+      summary_snp_links <- summary_snp_links
+    } else {
+      stop("Invalid phylogeny parameter. Choose 'Snippy', 'Gubbins', or 'all'.")
+    }
+    
+    if (nrow(summary_snp_links) == 0) {
+      cat(paste0("No genomic linkages found for phylogeny: ", tools::toTitleCase(params$phylogeny), "\n"))
+    } else {
+      
     unique_sources <- unique(summary_snp_links$Source)
 
     for (source in unique_sources) {
@@ -280,6 +356,7 @@ if (nrow(summary_snp_links) == 0) {
           ) %>%
           row_spec(0, bold = TRUE) %>%
           as.character(), "\n")
+        }
       }
     }
   }

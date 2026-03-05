@@ -17,13 +17,17 @@ library(rjson)
 #Enter the param taxa
 taxa <- "Shigella_flexneri"
 
+#Enter the param methods either "all", "Snippy", or "Gubbins"
+phylogeny<- "all"   
+
+
 #Add date
 todays_date <- format(Sys.Date(), "%Y-%m-%d")
 
 #Render the report
 quarto_render(
   input = "BacteriaGenomicsReports.qmd",
-  execute_params = list(taxa = taxa),
+  execute_params = list(taxa = taxa, phylogeny = phylogeny),
   output_file = paste0("BacteriaGenomicsReports_", taxa, "_", todays_date, ".html")
 )
 

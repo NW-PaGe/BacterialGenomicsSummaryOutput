@@ -21,17 +21,20 @@ snippy_meta <- read_csv(snippy_file, show_col_types = FALSE) %>%
 # Snippy partitions
 snippy_new_partition <- snippy_meta %>%
   filter(STATUS == "NEW") %>%
-  select(ID_clean, PARTITION) %>%
+  select(ID_clean, CLUSTER, PARTITION) %>%
   distinct()
 
 snippy_partition_counts <- snippy_meta %>%
   filter(PARTITION %in% snippy_new_partition$PARTITION) %>%
-  group_by(PARTITION) %>%
+  group_by(CLUSTER, PARTITION) %>%
   summarise(PARTITION_Snippy_Counts = n(), .groups = "drop")
 
 snippy_partition_info <- snippy_new_partition %>%
   rename(PARTITION_Snippy = PARTITION) %>%
-  left_join(snippy_partition_counts, by = c("PARTITION_Snippy" = "PARTITION"))
+  left_join(
+    snippy_partition_counts,
+    by = c("CLUSTER", "PARTITION_Snippy" = "PARTITION")
+  )
 
 
 ### GUBBINS Partitions from Microreact files
@@ -51,17 +54,20 @@ gubbins_meta <- read_csv(gubbins_file, show_col_types = FALSE) %>%
 # Gubbins partitions
 gubbins_new_partition <- gubbins_meta %>%
   filter(STATUS == "NEW") %>%
-  select(ID_clean, PARTITION) %>%
+  select(ID_clean, CLUSTER, PARTITION) %>%
   distinct()
 
 gubbins_partition_counts <- gubbins_meta %>%
   filter(PARTITION %in% gubbins_new_partition$PARTITION) %>%
-  group_by(PARTITION) %>%
+  group_by(CLUSTER, PARTITION) %>%
   summarise(PARTITION_Gubbins_Counts = n(), .groups = "drop")
 
 gubbins_partition_info <- gubbins_new_partition %>%
   rename(PARTITION_Gubbins = PARTITION) %>%
-  left_join(gubbins_partition_counts, by = c("PARTITION_Gubbins" = "PARTITION"))
+  left_join(
+    gubbins_partition_counts,
+    by = c("CLUSTER", "PARTITION_Gubbins" = "PARTITION")
+  )
 
 # Combine Snippy and Gubbins outputs
 

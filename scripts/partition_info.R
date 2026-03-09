@@ -25,7 +25,8 @@ snippy_new_partition <- snippy_meta %>%
   distinct()
 
 snippy_partition_counts <- snippy_meta %>%
-  filter(PARTITION %in% snippy_new_partition$PARTITION) %>%
+  filter(PARTITION %in% snippy_new_partition$PARTITION,
+         ID_clean != "Reference") %>%
   group_by(CLUSTER, PARTITION) %>%
   summarise(PARTITION_Snippy_Counts = n(), .groups = "drop")
 
@@ -58,7 +59,8 @@ gubbins_new_partition <- gubbins_meta %>%
   distinct()
 
 gubbins_partition_counts <- gubbins_meta %>%
-  filter(PARTITION %in% gubbins_new_partition$PARTITION) %>%
+  filter(PARTITION %in% gubbins_new_partition$PARTITION,
+         ID_clean != "Reference") %>%
   group_by(CLUSTER, PARTITION) %>%
   summarise(PARTITION_Gubbins_Counts = n(), .groups = "drop")
 

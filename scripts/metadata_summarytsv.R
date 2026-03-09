@@ -218,16 +218,20 @@ for (name in names(metadata_grouped)) {
 }
 
 
-#Mapping of sequencing ID and CASE_ID
-mapping_case_ID<-current_run_metadata%>% 
+# Summary table
+#Mapping of sequencing ID and CASE_ID and summary sample metadata
+summary_table<-current_run_metadata%>% 
   filter(STATUS=="NEW") %>% 
   mutate(CASE_ID=as.character(CASE_ID)) %>% 
   select(ID,
          ID_ALT,
-         CASE_ID) %>% 
+         CASE_ID,
+         SpecimenDateCollected,
+         PatientAddressCounty,
+         SubmitterCounty) %>% 
   distinct()
 
 #Remove row names
-rownames(mapping_case_ID) <- NULL
+rownames(summary_table) <- NULL
 
-save(mapping_case_ID, file = file.path(outputs_script_dir, "mapping_case_ID.RData"))
+save(summary_table, file = file.path(outputs_script_dir, "summary_table.RData"))

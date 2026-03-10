@@ -57,3 +57,5 @@ BacteriaGenomicsReports.html
 
 /.quarto/
 *.html
+
+**/*.quarto_ipynb

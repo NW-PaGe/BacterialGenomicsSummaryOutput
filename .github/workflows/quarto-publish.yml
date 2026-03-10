@@ -25,6 +25,10 @@ jobs:
           fi
           
       # Step 1: Create GitHub App Token
+      # IMPORTANT! this github action will not run properly unless you set up this App Token
+      # GitHub Actions do not play nice with branch protections
+      # NW-PaGe has a custom app that allows github actions to bypass some branch protections
+      # Follow these instructions to recreate this https://nw-page.github.io/standards/gh/policies.html#github-app-to-allow-bypass
       - name: Create GitHub App Token
         id: app-token
         uses: actions/create-github-app-token@v2
@@ -39,10 +43,10 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
 
-      - name: Install R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.5.1' # The R version to download (if necessary) and use.
+      # - name: Install R
+      #   uses: r-lib/actions/setup-r@v2
+      #   with:
+      #     r-version: '4.5.1' # The R version to download (if necessary) and use.
         
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -55,19 +59,19 @@ jobs:
       - name: Install CURL Headers
         run: sudo apt-get install libcurl4-openssl-dev
   
-      - name: Cache packages
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-renv-
+      # - name: Cache packages
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ env.RENV_PATHS_ROOT }}
+      #     key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-renv-
       
-      - name: Restore packages
-        shell: Rscript {0}
-        run: |
-          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-          renv::restore()
+      # - name: Restore packages
+      #   shell: Rscript {0}
+      #   run: |
+      #     if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+      #     renv::restore()
       
       # - name: Render PDF
       #   run: |

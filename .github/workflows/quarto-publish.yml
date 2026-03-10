@@ -1,0 +1,83 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+name: Render and Publish
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.actor != 'nwpage-let-me-in' && (github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]') }}
+
+    env:
+      RENV_PATHS_ROOT: ~/.cache/R/renv
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # this secret is always available for github actions
+      
+    steps:
+      # Step 3: Check if the push was to `gh-pages` and skip commit if that's the case
+      - name: Check if we are on gh-pages
+        run: |
+          if [ "${GITHUB_REF}" == "refs/heads/gh-pages" ]; then
+            echo "Skipping commit and push for gh-pages branch to avoid triggering workflow loop"
+            exit 0  # Exit early if we're on gh-pages to avoid committing back to main
+          fi
+          
+      # Step 1: Create GitHub App Token
+      - name: Create GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.YOUR_GITHUB_APP_ID }}
+          private-key: ${{ secrets.YOUR_GITHUB_APP_PRIVATE_KEY }}
+  
+      # Step 2: Checkout repository code using GitHub App Token
+      - name: Check out repository code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.1' # The R version to download (if necessary) and use.
+        
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: '1.8.25'
+        
+      - name: Prep CURL install
+        run: sudo apt-get update
+
+      - name: Install CURL Headers
+        run: sudo apt-get install libcurl4-openssl-dev
+  
+      - name: Cache packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.RENV_PATHS_ROOT }}
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+      
+      - name: Restore packages
+        shell: Rscript {0}
+        run: |
+          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          renv::restore()
+      
+      # - name: Render PDF
+      #   run: |
+      #       quarto render MockupReport.qmd
+
+      - name: Publish to GitHub Pages (and render)
+        uses: quarto-dev/quarto-actions/publish@v2.0.2
+        with:
+          target: gh-pages
+          path: MockupReport.qmd
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required to push to the repository

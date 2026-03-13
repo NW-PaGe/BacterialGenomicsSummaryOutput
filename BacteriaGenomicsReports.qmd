@@ -77,7 +77,8 @@ summary_table_display <- summary_table %>%
     "WDRS ID" = CASE_ID,
     "Collection Date" = SpecimenDateCollected,
     "Patient County" = PatientAddressCounty,
-    "Submitter County" = SubmitterCounty
+    "Submitter County" = SubmitterCounty,
+    "Submitter Facility" = SubmitterName
   )
 
 #Table attributes
@@ -113,14 +114,14 @@ if (params$phylogeny == "Snippy") {
     select(ID_clean, PARTITION_Snippy, PARTITION_Snippy_Counts) %>%
     rename(
       PARTITION = PARTITION_Snippy,
-      ISO_IN_PARTITION = PARTITION_Snippy_Counts
+      'PARTITION (n=)' = PARTITION_Snippy_Counts
     )
 } else if (params$phylogeny == "Gubbins") {
   partition_info_filtered <- partition_info %>%
     select(ID_clean, PARTITION_Gubbins, PARTITION_Gubbins_Counts) %>%
     rename(
       PARTITION = PARTITION_Gubbins,
-      ISO_IN_PARTITION = PARTITION_Gubbins_Counts
+      'PARTITION (n=)' = PARTITION_Gubbins_Counts
     )
 } else if (params$phylogeny == "all") {
   # Keep both Snippy and Gubbins columns
@@ -128,8 +129,8 @@ if (params$phylogeny == "Snippy") {
     select(ID_clean, PARTITION_Snippy, PARTITION_Snippy_Counts,
            PARTITION_Gubbins, PARTITION_Gubbins_Counts) %>%
     rename(
-      ISO_IN_PARTITION_Snippy = PARTITION_Snippy_Counts,
-      ISO_IN_PARTITION_Gubbins = PARTITION_Gubbins_Counts
+      'PARTITION_Snippy (n=)' = PARTITION_Snippy_Counts,
+      'PARTITION_Gubbins (n=)'= PARTITION_Gubbins_Counts
     )
 } else {
   stop("Invalid phylogeny parameter. Choose 'Snippy', 'Gubbins', or 'all'.")
@@ -137,7 +138,10 @@ if (params$phylogeny == "Snippy") {
 
 # Join partition info to summary_new_seq
 summary_new_seq <- summary_new_seq %>%
-  left_join(partition_info_filtered, by = c("ID" = "ID_clean"))
+  left_join(partition_info_filtered, by = c("ID" = "ID_clean")) %>%
+   rename(
+      'CLUSTER (n=)' = ISO_IN_CLUSTER)
+  
 
 # Table rendering
 kable(summary_new_seq) %>%
@@ -158,7 +162,9 @@ Of these, the following isolates resulted in new genetic clusters:
 ```{r new_clusters_table, echo = FALSE}
 #Identify samples that resulted in new clusters
 new_clust<-newseq %>% 
-  filter(ISO_IN_CLUSTER==1)
+  filter(ISO_IN_CLUSTER==1)%>%
+   rename(
+      'CLUSTER (n=)' = ISO_IN_CLUSTER)
 
 #Table attributes
 if (nrow(new_clust) > 0) {

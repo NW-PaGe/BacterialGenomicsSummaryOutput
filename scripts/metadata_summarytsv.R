@@ -228,7 +228,8 @@ summary_table<-current_run_metadata%>%
          CASE_ID,
          SpecimenDateCollected,
          PatientAddressCounty,
-         SubmitterCounty) %>% 
+         SubmitterCounty,
+         SubmitterName) %>% 
   distinct()
 
 #Remove row names

@@ -15,12 +15,11 @@ There are 5 new sequencing results in this BigBacter run.
 
 This is a summary table which includes sample metadata and mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
 
-```{r overview_new_samples_table, echo = FALSE}
-
+```{}
 ```
 
 | WA ID | ALT ID | WDRS ID | Collection Date | Patient County | Submitter County |
-|----|----|----|----|----|----|
+|------------|------------|------------|------------|------------|------------|
 | WA1000000 | 2024JQ-00001 | 100000000 | 2024-01-01 | Thurston | Spokane |
 | WA1200000 | 2024JQ-00002 | 200000000 | 2024-01-01 | King | Pierce |
 | WA1300000 | 2024JQ-00003 | 300000000 | 2024-01-01 | Whatcom | Whatcom |
@@ -29,12 +28,11 @@ This is a summary table which includes sample metadata and mapping of the sequen
 
 The new isolates were analyzed using **`Gubbins`** and classified by BigBacter as follows:
 
-```{r new_isolates_table, echo = FALSE}
-
+```{}
 ```
 
 | ID | QUAL | TAXA | GENOMIC_CLUSTER | ISO_IN_CLUSTER | PARTITION_Gubbins | ISO_IN_PARTITION |
-|----|----|----|----|----|----|----|
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 | WA1000000 | PASS | Klebsiella_pneumoniae | 4 | 22 | 5 | 1 |
 | WA1200000 | PASS | Klebsiella_pneumoniae | 4 | 22 | 4 | 3 |
 | WA1300000 | PASS | Klebsiella_pneumoniae | 208 | 1 | NA | NA |
@@ -45,8 +43,7 @@ The new isolates were analyzed using **`Gubbins`** and classified by BigBacter a
 
 Of these, the following isolates resulted in new genetic clusters:
 
-```{r new_clusters_table, echo = FALSE}
-
+```{}
 ```
 
 | ID        | QUAL | TAXA                  | GENOMIC_CLUSTER | ISO_IN_CLUSTER |
@@ -58,8 +55,7 @@ Of these, the following isolates resulted in new genetic clusters:
 
 The following isolates failed quality control.
 
-```{r failed_isolates_table, echo = FALSE}
-
+```{}
 ```
 
 ## Recombination
@@ -68,8 +64,7 @@ Bacterial recombination is the process where bacteria exchange genetic material 
 
 We evaluate recombination in multiple ways. First the number of sites where recombination was detected is divided by the total length of the core genome. If recombination is more than 5% in a genomic cluster the Gubbins outputs are used. If recombination is more than 1% but less than 5%, then the Snippy and Gubbins outputs are reviewed jointly to see if they yield different interpretations. If the interpretations differ, then most likely we will use the Gubbins for the genomic interpretations.
 
-```{r recombination, echo = FALSE}
-
+```{}
 ```
 
 | TAXA                  | GENOMIC_CLUSTER | MAX\_%Recomb_Detected |
@@ -83,12 +78,11 @@ We evaluate recombination in multiple ways. First the number of sites where reco
 
 The minimum and maximum SNP distances calculated using **`Gubbins`** are summarized below.
 
-```{r snp_min_max_table, echo = FALSE}
-
+```{}
 ```
 
 | Source | MAX | MIN |
-|------------------------------------------------------|---------|---------|
+|-----------------------------------------------|-------------|-------------|
 | 1770000000-Klebsiella_pneumoniae-00004-core-snps_dist.gubbins-long | 315 | 1 |
 | 1770000000-Klebsiella_pneumoniae-00301-core-snps_dist.gubbins-long | 25638 | 62 |
 
@@ -98,28 +92,26 @@ The minimum and maximum SNP distances calculated using **`Gubbins`** are summari
 
 Based on the SNP distances calculated using **`Gubbins`**, the following **very strong (0–5 SNPs)**, **strong (6–10 SNPs)**, and **intermediate (11–50 SNPs)** genomic linkages were identified between the new isolate(s) and other sequences within the corresponding genomic clusters.
 
-```{r genomic_linkages_tables, echo=FALSE, results='asis'}
-
+```{}
 ```
 
 | ID | VeryStrongGenLinks (0-5 SNP) | StrongGenLinks (6-10 SNP) | InterGenLinks (11-50 SNP) |
-|----|----|----|----|
+|------------------|------------------|------------------|------------------|
 | WA1200000 | WA0500000 | WA0800000, WA0900000 |  |
 
 ## Metadata
 
 This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates. The facilities are the submitting facilities and the counties the submitting facilities' county.
 
-```{r metadata_table, echo = FALSE}
-
+```{}
 ```
 
 | Taxa_GenomicCluster | Min_CollDate | Max_CollDate | All_Counties | New_Counties | All_Facilities | New_Facilities | All_IDs | New_IDs | Same_DOB_Isolates |
-|----|----|----|----|----|----|----|----|----|----|
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|
 | Klebsiella_pneumoniae_208 | 01-30-2022 | 2024-01-01 | Skagit, Whatcom | Whatcom | A Hospital,X Laboratory | A Hospital | WA1300000 | WA1300000 | No isolates from the same case |
 | Klebsiella_pneumoniae_301 | 02-30-2020 | 2024-01-01 | King | King | B Hospital | B Hospital | WA1400000 | WA1400000 | No isolates from the same case |
 | Klebsiella_pneumoniae_318 | 03-30-2023 | 2024-01-01 | Pierce, Snohomish, King | King | C Hospital,General Hospital,A Laboratory | A Laboratory | WA1500000 | WA1500000 | No isolates from the same case |
-| Klebsiella_pneumoniae_4 | 04-30-2021 | 2024-01-01 | Chelan, Grant, Spokane | Spokane | Medical Center, D Health,  B Laboratory | B Laboratory | WA1200000, WA1000000 | WA1200000, WA1000000 | DOB: 1999-01-01 IDs: WA0800000, WA0900000 |
+| Klebsiella_pneumoniae_4 | 04-30-2021 | 2024-01-01 | Chelan, Grant, Spokane | Spokane | Medical Center, D Health, B Laboratory | B Laboratory | WA1200000, WA1000000 | WA1200000, WA1000000 | DOB: 1999-01-01 IDs: WA0800000, WA0900000 |
 
 *Isolates listed as having the same DOB might or might not be isolates from the same case. Check against epi data to confirm isolates listed are indeed from the same case.*
 

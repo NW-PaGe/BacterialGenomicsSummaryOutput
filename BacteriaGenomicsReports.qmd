@@ -129,8 +129,10 @@ if (params$phylogeny == "Snippy") {
     select(ID_clean, PARTITION_Snippy, PARTITION_Snippy_Counts,
            PARTITION_Gubbins, PARTITION_Gubbins_Counts) %>%
     rename(
-      'PARTITION_Snippy (n=)' = PARTITION_Snippy_Counts,
-      'PARTITION_Gubbins (n=)'= PARTITION_Gubbins_Counts
+      'PARTITION Snippy' = PARTITION_Snippy,
+      'PARTITION Gubbins'= PARTITION_Gubbins,
+      'PARTITION Snippy (n=)' = PARTITION_Snippy_Counts,
+      'PARTITION Gubbins (n=)'= PARTITION_Gubbins_Counts
     )
 } else {
   stop("Invalid phylogeny parameter. Choose 'Snippy', 'Gubbins', or 'all'.")
@@ -140,6 +142,7 @@ if (params$phylogeny == "Snippy") {
 summary_new_seq <- summary_new_seq %>%
   left_join(partition_info_filtered, by = c("ID" = "ID_clean")) %>%
    rename(
+     'GENOMIC CLUSTER' = GENOMIC_CLUSTER,
       'CLUSTER (n=)' = ISO_IN_CLUSTER)
   
 

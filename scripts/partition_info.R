@@ -33,7 +33,7 @@ if (length(snippy_file) > 0) {
   
   snippy_new_partition <- snippy_meta %>%
     filter(STATUS == "NEW") %>%
-    select(ID_clean, PARTITION) %>%
+    select(ID_clean, CLUSTER, PARTITION) %>%
     distinct()
   
   snippy_partition_counts <- snippy_meta %>%
@@ -47,7 +47,7 @@ if (length(snippy_file) > 0) {
   snippy_partition_info <- snippy_new_partition %>%
     rename(PARTITION_Snippy = PARTITION) %>%
     left_join(snippy_partition_counts,
-              by = c("PARTITION_Snippy" = "PARTITION"))
+              by = c("CLUSTER", "PARTITION_Snippy" = "PARTITION"))
   
 } else {
   
@@ -67,7 +67,7 @@ if (length(gubbins_file) > 0) {
   
   gubbins_new_partition <- gubbins_meta %>%
     filter(STATUS == "NEW") %>%
-    select(ID_clean, PARTITION) %>%
+    select(ID_clean, CLUSTER, PARTITION) %>%
     distinct()
   
   gubbins_partition_counts <- gubbins_meta %>%
@@ -81,7 +81,7 @@ if (length(gubbins_file) > 0) {
   gubbins_partition_info <- gubbins_new_partition %>%
     rename(PARTITION_Gubbins = PARTITION) %>%
     left_join(gubbins_partition_counts,
-              by = c("PARTITION_Gubbins" = "PARTITION"))
+              by = c("CLUSTER", "PARTITION_Gubbins" = "PARTITION"))
   
 } else {
   

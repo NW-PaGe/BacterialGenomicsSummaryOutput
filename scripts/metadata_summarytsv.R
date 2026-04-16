@@ -139,13 +139,13 @@ results <- lapply(metadata_grouped, function(df) {
            ) %>% 
     distinct()
   
-  #Extract unique counties from Submitter County
-  all_counties <- unique(na.omit(df$SubmitterCounty))
+  #Extract unique counties from PatientAddressCounty (previously pulled from Submitter County)
+  all_counties <- unique(na.omit(df$PatientAddressCounty))
   
   #Extract unique counties where STATUS is NEW
   new_counties <- unique(na.omit(df %>%
                            filter(STATUS == "NEW") %>%
-                           select(SubmitterCounty))) %>%
+                           select(PatientAddressCounty))) %>%
                            unlist()
   
   #Extract unique submitting facilities' names from Submitter facility

@@ -9,7 +9,8 @@ format:
     self-contained: true
 params:
   taxa: "Placeholder"
-  phylogeny: "all" #defaults to showing both Snippy and Gubbins results but the renderind script will override this if Gubbins or Snippy are selected
+  phylogeny: "all" #defaults to showing both Snippy and Gubbins results but the rendering script will override this if Gubbins or Snippy are selected
+  PatientAddressCounty: "all"  #defaults to showing all samples regardless of the patient address county
 ---
 
 ```{r, results='hide', echo=FALSE, message=FALSE, warning=FALSE}
@@ -59,18 +60,74 @@ if (!(params$phylogeny %in% valid_phylogenies)) {
 phylogeny <- params$phylogeny
 ```
 
+
+```{r PatientAddressCounty, echo = FALSE}
+PatientAddressCounty <- params$PatientAddressCounty
+
+PatientAddressCounty <- toTitleCase(tolower(PatientAddressCounty))
+```
+
+
+
+```{r global helper function, echo = FALSE}
+# Load summary_table which has patient address county info
+outputs_script_dir <- "outputs_scripts"
+summary_table <- file.path(outputs_script_dir, "summary_table.RData")
+load(summary_table)
+
+# Create county lookup
+county_lookup <- summary_table %>%
+  select(ID, PatientAddressCounty)
+
+county_param <- toTitleCase(tolower(params$PatientAddressCounty))
+
+# Global helper function
+add_and_filter_county <- function(df) {
+  
+  # Detect ID column
+  id_col <- if ("ID" %in% colnames(df)) {
+    "ID"
+  } else if ("WA ID" %in% colnames(df)) {
+    "WA ID"
+  } else {
+    return(df)
+  }
+  
+  # Only join if PatientAddressCounty is missing
+  if (!"PatientAddressCounty" %in% colnames(df)) {
+    df <- df %>%
+      left_join(county_lookup, by = setNames("ID", id_col))
+  }
+  
+  county_param <- tools::toTitleCase(tolower(params$PatientAddressCounty))
+  
+  if (county_param != "All") {
+    df <- df %>%
+      mutate(PatientAddressCounty = tools::toTitleCase(tolower(PatientAddressCounty))) %>%
+      filter(stringr::str_detect(PatientAddressCounty, county_param))
+  }
+  
+  df
+}
+```
+
+
 ## Overview New Samples
 
-There are `r nrow(newseq)` new sequencing results in this BigBacter run.
+In this BigBacter run, there are `r nrow(newseq)` new sequencing results from patients who reside in   **`r tools::toTitleCase(params$PatientAddressCounty)`** county or counties.
 
 This is a summary table which includes sample metadata and mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
 ```{r overview_new_samples_table, echo = FALSE}
 summary_table <- file.path("outputs_scripts", "summary_table.RData")
-
 load(summary_table)
 
+
+#Using global helper function filter based on params PatientAddressCounty 
+summary_table_filtered <- summary_table %>%
+  add_and_filter_county()
+
 #Rename Columns
-summary_table_display <- summary_table %>%
+summary_table_display <- summary_table_filtered  %>%
   rename(
     "WA ID" = ID,
     "ALT ID" = ID_ALT,
@@ -80,6 +137,7 @@ summary_table_display <- summary_table %>%
     "Submitter County" = SubmitterCounty,
     "Submitter Facility" = SubmitterName
   )
+
 
 #Table attributes
 kable(summary_table_display) %>%
@@ -94,14 +152,15 @@ kable(summary_table_display) %>%
 
 ```
 
-The new isolates were analyzed using **`r tools::toTitleCase(params$phylogeny)`** and classified by BigBacter as follows:
+The new sequencing results from patients who reside in   **`r tools::toTitleCase(params$PatientAddressCounty)`** county or counties were analyzed using **`r tools::toTitleCase(params$phylogeny)`** and classified by BigBacter as follows:
 ```{r new_isolates_table, echo = FALSE}
+# Load info from new sequences
 outputs_script_dir <- "outputs_scripts"
 
-# Load new sequences
 newseq_file <- list.files(outputs_script_dir, pattern = "newseq.RData$", full.names = TRUE)
 loaded_newseq <- load(newseq_file[1])
 summary_new_seq <- bind_rows(get(loaded_newseq[1]))
+
 
 # Load partition_info
 partition_file <- list.files(outputs_script_dir, pattern = "partition_info.RData$", full.names = TRUE)
@@ -139,11 +198,16 @@ if (params$phylogeny == "Snippy") {
 }
 
 # Join partition info to summary_new_seq
-summary_new_seq <- summary_new_seq %>%
+summary_new_seq_partition <- summary_new_seq %>%
   left_join(partition_info_filtered, by = c("ID" = "ID_clean")) %>%
    rename(
      'GENOMIC CLUSTER' = GENOMIC_CLUSTER,
       'CLUSTER (n=)' = ISO_IN_CLUSTER)
+
+#Using global helper function filter based on params PatientAddressCounty 
+summary_new_seq <- summary_new_seq_partition %>%
+  add_and_filter_county() %>%
+  select(-any_of("PatientAddressCounty"))
   
 
 # Table rendering
@@ -169,6 +233,11 @@ new_clust<-newseq %>%
    rename(
       'CLUSTER (n=)' = ISO_IN_CLUSTER)
 
+#Using global helper function filter based on params PatientAddressCounty 
+new_clust <- new_clust %>%
+  add_and_filter_county()
+
+
 #Table attributes
 if (nrow(new_clust) > 0) {
   kable(new_clust) %>%
@@ -193,10 +262,12 @@ The following isolates failed quality control.
 outputs_script_dir <- "outputs_scripts"
 
 failed_file <- list.files(outputs_script_dir, pattern = "failed.RData$", full.names = TRUE)
-
 loaded_failed <- load(failed_file[1])
-
 failed_df <- bind_rows(get(loaded_failed[1]))
+
+#Using global helper function filter based on params PatientAddressCounty 
+failed_df <- failed_df %>%
+  add_and_filter_county()
 
 if (nrow(failed_df) > 0) {
   kable(failed_df) %>%
@@ -375,7 +446,7 @@ if (nrow(summary_snp_links) == 0) {
 
 ## Metadata
 
-This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates. The facilities are the submitting facilities and the counties the submitting facilities' county.
+This is an overview of the metadata pertaining to each of the genomic clusters that contain new isolates. The counties are extracted from patient county address.
 
 ```{r metadata_table, echo = FALSE}
 
@@ -409,7 +480,8 @@ for (file in rdata_files) {
 }
 
 #Bind all the data frames into one combined data frame
-final_metadata <- bind_rows(all_data)
+final_metadata <- bind_rows(all_data) %>% 
+  select (-"All_Facilities", -"New_Facilities")
 
 #Table attributes
 kable(final_metadata) %>%

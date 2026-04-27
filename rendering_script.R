@@ -31,7 +31,14 @@ todays_date <- format(Sys.Date(), "%Y-%m-%d")
 #Render the report
 quarto_render(
   input = "BacteriaGenomicsReports.qmd",
-  execute_params = list(taxa = taxa, phylogeny = phylogeny),
-  output_file = paste0("BacteriaGenomicsReports_",  PatientAddressCounty, "_", taxa, "_", phylogeny, "_", todays_date, ".html")
+  execute_params = list(
+    taxa = taxa, 
+    phylogeny = phylogeny,
+    PatientAddressCounty = PatientAddressCounty),
+  output_file = paste0("BacteriaGenomicsReports_",  
+                       PatientAddressCounty, "_", 
+                       taxa, "_", 
+                       phylogeny, "_", 
+                       todays_date, ".html")
 )
 

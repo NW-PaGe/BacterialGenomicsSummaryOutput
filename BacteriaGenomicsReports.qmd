@@ -112,12 +112,7 @@ add_and_filter_county <- function(df) {
 ```
 
 
-## Overview New Samples
-
-In this BigBacter run, there are `r nrow(newseq)` new sequencing results from patients who reside in   **`r tools::toTitleCase(params$PatientAddressCounty)`** county or counties.
-
-This is a summary table which includes sample metadata and mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
-```{r overview_new_samples_table, echo = FALSE}
+```{r summary_table_display, echo = FALSE}
 summary_table <- file.path("outputs_scripts", "summary_table.RData")
 load(summary_table)
 
@@ -138,7 +133,14 @@ summary_table_display <- summary_table_filtered  %>%
     "Submitter Facility" = SubmitterName
   )
 
+```
 
+## Overview New Samples
+
+In this BigBacter run, there are `r nrow(summary_table_filtered)` new sequencing results from patients who reside in   **`r tools::toTitleCase(params$PatientAddressCounty)`** county or counties.
+
+This is a summary table which includes sample metadata and mapping of the sequencing ID to the corresponding WDRS CASE_ID, if available
+```{r overview_new_samples_table, echo = FALSE}
 #Table attributes
 kable(summary_table_display) %>%
   kable_styling(

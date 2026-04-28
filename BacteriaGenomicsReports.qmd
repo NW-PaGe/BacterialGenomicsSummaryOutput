@@ -483,7 +483,12 @@ for (file in rdata_files) {
 
 #Bind all the data frames into one combined data frame
 final_metadata <- bind_rows(all_data) %>% 
-  select (-"All_Facilities", -"New_Facilities")
+  select (-"All_Facilities", 
+          -"New_Facilities",
+          -"New_Counties",
+          -"All_IDs",
+          -"New_IDs",
+          -"Same_DOB_Isolates")
 
 #Table attributes
 kable(final_metadata) %>%

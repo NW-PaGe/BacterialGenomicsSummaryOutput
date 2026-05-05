@@ -139,13 +139,13 @@ results <- lapply(metadata_grouped, function(df) {
            ) %>% 
     distinct()
   
-  #Extract unique counties from Submitter County
-  all_counties <- unique(na.omit(df$SubmitterCounty))
+  #Extract unique counties from PatientAddressCounty (previously pulled from Submitter County)
+  all_counties <- unique(na.omit(df$PatientAddressCounty))
   
   #Extract unique counties where STATUS is NEW
   new_counties <- unique(na.omit(df %>%
                            filter(STATUS == "NEW") %>%
-                           select(SubmitterCounty))) %>%
+                           select(PatientAddressCounty))) %>%
                            unlist()
   
   #Extract unique submitting facilities' names from Submitter facility
@@ -159,22 +159,20 @@ results <- lapply(metadata_grouped, function(df) {
   
   
   #Identify isolates from cases with the same DOB and extract their IDs
-  same_dob <- df %>%
+  same_dob_df <- df %>%
     group_by(PatientBirthDate) %>%
     filter(n() > 1 & !is.na(PatientBirthDate)) %>%
-    select(ID, ID_ALT, PatientBirthDate)%>%
-    summarise(IDs = paste(ID, collapse = ","), ID_ALT = paste(ID_ALT, collapse = ","))
-  
-  #Format the duplicate DOB results
-  if (nrow(same_dob) > 0) {
-    duplicate_dob_str <- paste(
-      paste0(" [DOB: ",  same_dob$PatientBirthDate, " IDs: ",  same_dob$IDs),
-      collapse = "]"
-    )
-  } else {
-    duplicate_dob_str <- "No isolates from the same case"
-  }
-  
+    #filter(any(STATUS == "NEW")) %>%
+    ungroup() %>%
+    select(
+      ID,
+      CASE_ID,
+      STATUS,
+      SpecimenDateCollected,
+      PatientAddressCounty,
+      PatientBirthDate
+    ) %>%
+    distinct()
   
   #Limit All_IDs to no more than 10
   if (nrow(all_ids) > 10) {
@@ -201,20 +199,41 @@ results <- lapply(metadata_grouped, function(df) {
   combined_df$New_IDs <- paste(new_IDs$ID,
                                new_IDs$ID_ALT,
                                collapse = "; ")
-  combined_df$Same_DOB_Isolates = duplicate_dob_str
 
   
-  return(combined_df)
+  return(list(
+    combined_df = combined_df,
+    same_dob_df = same_dob_df
+  ))
+  
 })
 
 #Combine results into single dataframes and save as .RData files
 for (name in names(metadata_grouped)) {
-  combined_df <- results[[name]]
   
-  #Define name for the output file
-  output_name <- paste(metadata_grouped[[name]]$TAXA[1], metadata_grouped[[name]]$CLUSTER[1], sep = "_")
+  combined_df <- results[[name]]$combined_df
+  same_dob_df <- results[[name]]$same_dob_df
   
-  save(combined_df, file = file.path(results_dir, paste0(output_name, ".RData")))
+  output_name <- paste(
+    metadata_grouped[[name]]$TAXA[1],
+    metadata_grouped[[name]]$CLUSTER[1],
+    sep = "_"
+  )
+  
+  # Save main summary
+  save(
+    combined_df,
+    file = file.path(results_dir, paste0(output_name, ".RData"))
+  )
+  
+  # Save Same dob dataset separately
+  save(
+    same_dob_df,
+    file = file.path(
+      results_dir,
+      paste0(output_name, "_sameDOB.RData")
+    )
+  )
 }
 
 

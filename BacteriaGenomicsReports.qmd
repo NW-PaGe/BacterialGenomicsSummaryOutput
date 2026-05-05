@@ -101,7 +101,7 @@ add_and_filter_county <- function(df) {
   
   county_param <- tools::toTitleCase(tolower(params$PatientAddressCounty))
   
-  if (county_param != "All") {
+  if (county_param != "all") {
     df <- df %>%
       mutate(PatientAddressCounty = tools::toTitleCase(tolower(PatientAddressCounty))) %>%
       filter(stringr::str_detect(PatientAddressCounty, county_param))
@@ -456,6 +456,9 @@ results_dir <- "metadata_summ"
 
 rdata_files <- list.files(results_dir, pattern = "\\.RData$", full.names = TRUE)
 
+
+rdata_files <- rdata_files[!grepl("_sameDOB\\.RData$", rdata_files)]
+
 #Extract taxa from the filename
 extract_taxa <- function(filename) {
   parts <- unlist(strsplit(filename, "_"))  # Split by underscore
@@ -483,12 +486,11 @@ for (file in rdata_files) {
 
 #Bind all the data frames into one combined data frame
 final_metadata <- bind_rows(all_data) %>% 
-  select (-"All_Facilities", 
-          -"New_Facilities",
-          -"New_Counties",
-          -"All_IDs",
-          -"New_IDs",
-          -"Same_DOB_Isolates")
+  select(-"All_Facilities",
+         -"New_Facilities",
+         -"New_Counties",
+         -"All_IDs",
+         -"New_IDs")
 
 #Table attributes
 kable(final_metadata) %>%
@@ -502,7 +504,64 @@ kable(final_metadata) %>%
   row_spec(0, bold = TRUE)
 
 ```
-*Isolates listed as having the same DOB might or might not be isolates from the same case. Check against epi data to confirm isolates listed are indeed from the same case.*
+
+### Isolates with the same DOB
+
+These isolates share the same date of birth, which may indicate they originate from the same case. Verify against epi data to confirm whether the isolates listed are truly from the same case and consider this when interpreting the genomic data.
+
+```{r samedob_table, echo = FALSE}
+
+results_dir <- "metadata_summ"
+
+rdata_files <- list.files(
+  results_dir,
+  pattern = "_sameDOB\\.RData$",
+  full.names = TRUE
+)
+
+extract_taxa <- function(filename) {
+  parts <- unlist(strsplit(filename, "_"))
+  paste(parts[1], parts[2], sep = "_")
+}
+
+all_data <- list()
+
+for (file in rdata_files) {
+  load(file) 
+  
+  file_name <- file_path_sans_ext(basename(file))
+  taxa_name <- extract_taxa(file_name)
+  
+  if (taxa_name == params$taxa) {
+    
+    temp_df <- same_dob_df %>%
+      mutate(Taxa_GenomicCluster = file_name) %>%
+      select(Taxa_GenomicCluster, everything())
+    
+    temp_df <- temp_df %>%
+      add_and_filter_county()
+    
+    all_data[[file_name]] <- temp_df
+  }
+}
+
+final_metadata <- bind_rows(all_data) %>%
+  mutate(Taxa_GenomicCluster = gsub("_sameDOB$", "", Taxa_GenomicCluster)) %>%
+  arrange(Taxa_GenomicCluster, PatientBirthDate, SpecimenDateCollected)
+
+#Table attributes
+kable(final_metadata) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 10,
+    html_font = "Arial"
+  ) %>%
+  row_spec(0, bold = TRUE)
+```
+
+
 
 
 ## Resources

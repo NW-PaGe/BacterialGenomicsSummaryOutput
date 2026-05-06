@@ -550,7 +550,7 @@ final_metadata <- bind_rows(all_data) %>%
   arrange(Taxa_GenomicCluster, PatientBirthDate, SpecimenDateCollected)
 
 #Table attributes
-kable(final_metadata) %>%
+if (nrow(final_metadata) > 0) {kable(final_metadata) %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed", "responsive"),
     full_width = FALSE,
@@ -559,6 +559,9 @@ kable(final_metadata) %>%
     html_font = "Arial"
   ) %>%
   row_spec(0, bold = TRUE)
+} else {
+  message("All isolates have unique dates of birth")
+}
 ```
 
 

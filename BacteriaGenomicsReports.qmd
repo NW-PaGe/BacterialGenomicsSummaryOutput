@@ -330,9 +330,16 @@ outputs_script_dir <- "outputs_scripts"
 
 snpminmax_file <- list.files(outputs_script_dir, pattern = "summary_snp_minmax.RData$", full.names = TRUE)
 
+
 loaded_snp_minmax <- load(snpminmax_file[1])
 
 summary_snp <- bind_rows(get(loaded_snp_minmax[1]))
+
+if (nrow(summary_snp) == 0) {
+
+  cat("SNP distances were not calculated because this genomic cluster contains only a single sequence")
+
+} else {
 
 # Filter rows based on selected phylogeny (all, Snippy, or Gubbins)
 if (params$phylogeny %in% c("Snippy", "Gubbins")) {
@@ -357,12 +364,14 @@ if (nrow(summary_snp) > 0) {
     ) %>%
     row_spec(0, bold = TRUE)
 } else {
-  message("SNP distances weren't calculated")
+  message("SNP distances were not calculated because this genomic cluster contains only a single sequence")
+}
+  
 }
 
 ```
-
 *Sequences that resulted in new genetic clusters are excluded from this calculation.*
+
 
 ## Genomic Linkages
 

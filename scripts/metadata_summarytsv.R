@@ -38,6 +38,7 @@ bacteriamastermeta_summ<-bacteriatrackerwa_meta_df %>%
   mutate(SpecimenDateCollected=as.Date(COLLECTION_DATE, format = "%Y-%m-%d")) %>%
   mutate(PatientBirthDate=as.Date(PatientBirthDate, format = "%Y-%m-%d")) %>% 
   mutate(WA_ID=ID)%>% 
+  mutate(OriginHealthFacility=Healthcare_facility_of_origin_name) %>% 
   select(WA_ID,
          ID_ALT,
          CASE_ID,
@@ -48,6 +49,7 @@ bacteriamastermeta_summ<-bacteriatrackerwa_meta_df %>%
          PatientAddressCounty,
          SubmitterCounty,
          SubmitterName,
+         OriginHealthFacility,
          SpecimenSource)
 
 # Left join WA IDs on ID
@@ -68,6 +70,7 @@ wa_joined <- wa_ids %>%
          PatientAddressCounty,
          SubmitterCounty,
          SubmitterName,
+         OriginHealthFacility,
          SpecimenSource)
 
 # Left join non-WA IDs on ID_ALT
@@ -90,6 +93,7 @@ non_wa_joined <- non_wa_ids %>%
          PatientAddressCounty,
          SubmitterCounty,
          SubmitterName,
+         OriginHealthFacility,
          SpecimenSource)
 
 # Append the two dataframes
@@ -248,7 +252,10 @@ summary_table<-current_run_metadata%>%
          SpecimenDateCollected,
          PatientAddressCounty,
          SubmitterCounty,
-         SubmitterName) %>% 
+         SubmitterName,
+         OriginHealthFacility,
+         SpecimenSource
+         ) %>% 
   distinct()
 
 #Remove row names

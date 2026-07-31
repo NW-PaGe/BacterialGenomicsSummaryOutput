@@ -25,6 +25,10 @@ phylogeny<- "all"
 #Enter the patient address county (data will be filtered by patient address county ex. King) or "all"
 PatientAddressCounty<- "all"   
 
+
+#Enter the epi program (if HAI is specified then healthcare facility origin name form the ARLN LIMS table will show in the metadata) or "na" for non-HAI epi programs
+epiprogram<- "na" 
+
 #Add date
 todays_date <- format(Sys.Date(), "%Y-%m-%d")
 
@@ -34,7 +38,8 @@ quarto_render(
   execute_params = list(
     taxa = taxa, 
     phylogeny = phylogeny,
-    PatientAddressCounty = PatientAddressCounty),
+    PatientAddressCounty = PatientAddressCounty,
+    epiprogram = epiprogram),
   output_file = paste0("BacteriaGenomicsReports_",  
                        PatientAddressCounty, "_", 
                        taxa, "_", 

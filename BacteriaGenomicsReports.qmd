@@ -166,7 +166,8 @@ if (params$epiprogram == "HAI") {
     "WDRS ID",
     "Collection Date",
     "Patient County",
-    "Submitter County")
+    "Submitter County",
+    "Submitter Facility")
 }
   
 #Table attributes

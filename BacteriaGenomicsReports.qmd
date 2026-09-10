@@ -605,10 +605,6 @@ if (nrow(final_metadata) > 0) {kable(final_metadata) %>%
 
 ```{r draft_email, include=FALSE}
 
-# ============================================================
-# Draft email
-# ============================================================
-
 # Basic information
 sequence_count <- nrow(summary_table_filtered)
 pathogen_name <- params$taxa
@@ -669,8 +665,7 @@ for (cluster in genomic_clusters) {
 
   if (nrow(new_cluster) > 0) {
 
-    # This is a newly formed genomic cluster.
-    # List each new sequence in the cluster.
+    # This is a newly formed genomic cluster
     new_ids <- cluster_new$ID
 
     for (new_id in new_ids) {
@@ -678,7 +673,7 @@ for (cluster in genomic_clusters) {
       email_lines <- c(
         email_lines,
         paste0(
-          "The new sequence ", new_id,
+          "- The new sequence ", new_id,
           " is in a newly formed genomic cluster; there are no genomic linkages."
         )
       )
@@ -739,10 +734,40 @@ for (cluster in genomic_clusters) {
 
       for (new_id in new_ids) {
 
+        # Get details for the new sequence
+        new_sequence_details <- summary_table_display %>%
+          filter(`WA ID` == new_id)
+
+        # Select facility based on epidemiologic program
+        if (params$epiprogram == "HAI") {
+
+          facility <- new_sequence_details$`Origin Facility`
+          facility_text <- paste0("at ", facility)
+
+        } else {
+
+          facility <- new_sequence_details$`Submitter Facility`
+          facility_text <- paste0("submitted by ", facility)
+
+        }
+
+        # New sequence information
         email_lines <- c(
           email_lines,
           paste0(
-            "The new sequence ", new_id,
+            "- The new sequence ", new_id,
+            " was collected on ", new_sequence_details$`Collection Date`,
+            " from a case who resides in ",
+            new_sequence_details$`Patient County`,
+            " and was ", facility_text, "."
+          )
+        )
+
+        # No genomic linkage information
+        email_lines <- c(
+          email_lines,
+          paste0(
+            "- The new sequence ", new_id,
             " has no Very Strong, Strong, or Intermediate genomic linkages."
           )
         )
@@ -815,14 +840,23 @@ for (cluster in genomic_clusters) {
 
         }
 
+        # New sequence information
         email_lines <- c(
           email_lines,
           paste0(
-            "The new sequence ", link$new_id,
-            " collected on ", new_sequence_details$`Collection Date`,
+            "- The new sequence ", link$new_id,
+            " was collected on ", new_sequence_details$`Collection Date`,
             " from a case who resides in ",
             new_sequence_details$`Patient County`,
-            " and was ", facility_text,
+            " and was ", facility_text, "."
+          )
+        )
+
+        # Genomic linkage information
+        email_lines <- c(
+          email_lines,
+          paste0(
+            "- The new sequence ", link$new_id,
             " has a ", link$linkage_description,
             " (", link$dist, " SNPs) to ",
             link$linked_id, "."
@@ -867,14 +901,23 @@ for (cluster in genomic_clusters) {
 
         }
 
+        # New sequence information
         email_lines <- c(
           email_lines,
           paste0(
-            "The new sequence ", new_id,
-            " collected on ", new_sequence_details$`Collection Date`,
+            "- The new sequence ", new_id,
+            " was collected on ", new_sequence_details$`Collection Date`,
             " from a case who resides in ",
             new_sequence_details$`Patient County`,
-            " and was ", facility_text,
+            " and was ", facility_text, "."
+          )
+        )
+
+        # Genomic linkage information
+        email_lines <- c(
+          email_lines,
+          paste0(
+            "- The new sequence ", new_id,
             " has ",
             intermediate_counts$n_intermediate[i],
             " intermediate genomic ",
@@ -883,7 +926,7 @@ for (cluster in genomic_clusters) {
               "linkage",
               "linkages"
             ),
-            ". See the attachment for more details."
+            ". See the attachments for more details."
           )
         )
       }
@@ -902,7 +945,6 @@ writeLines(
   email_lines,
   file.path(outputs_script_dir, "email_draft.txt")
 )
-
 ```
 
 

@@ -120,7 +120,15 @@ for (summary_Linkages in names(snp_dist_long_list)) {
            InterGenLinkage= ifelse(dist >=11 & dist<=50, ID2, "")) %>%
     filter(VeryStrongGenLinkage != "" | StrongGenLinkage != "" | InterGenLinkage != "") %>%
     mutate(Source = summary_Linkages) %>%
-    select(Source, ID1, VeryStrongGenLinkage, StrongGenLinkage, InterGenLinkage)
+      select(
+        Source,
+        ID1,
+        ID2,
+        dist,
+        VeryStrongGenLinkage,
+        StrongGenLinkage,
+        InterGenLinkage
+      )
     
     snp_links <- snp_links %>%
     left_join(isolates_run_summ, by = c("ID1" = "ID"))

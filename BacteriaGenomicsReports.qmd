@@ -449,7 +449,7 @@ if (nrow(summary_snp_links) == 0) {
 
       if (nrow(filtered_links) > 0) {
         filtered_links <- filtered_links %>%
-          select(-Source, -STATUS) %>%
+          select(-Source, -STATUS, -ID2, -dist) %>%
           rename(
             ID = ID1,
             `VeryStrongGenLinks (0-5 SNP)` = VeryStrongGenLinkage,
@@ -603,6 +603,307 @@ if (nrow(final_metadata) > 0) {kable(final_metadata) %>%
 ```
 
 
+```{r draft_email, include=FALSE}
+
+# ============================================================
+# Draft email
+# ============================================================
+
+# Basic information
+sequence_count <- nrow(summary_table_filtered)
+pathogen_name <- params$taxa
+phylogeny_name <- tools::toTitleCase(params$phylogeny)
+
+# Start email
+email_lines <- c(
+  "Hello,",
+  "",
+  paste0(
+    "There are ", sequence_count,
+    " new sequence results for ", pathogen_name, "."
+  ),
+  "",
+  paste0(
+    "The ", phylogeny_name,
+    " outputs were used for the following interpretations:"
+  ),
+  ""
+)
+
+# ------------------------------------------------------------
+# Genomic cluster interpretations
+# ------------------------------------------------------------
+
+# Get unique genomic clusters represented among the new sequences
+genomic_clusters <- unique(summary_new_seq$`GENOMIC CLUSTER`)
+genomic_clusters <- genomic_clusters[!is.na(genomic_clusters)]
+
+for (cluster in genomic_clusters) {
+
+  # New sequences in this genomic cluster
+  cluster_new <- summary_new_seq %>%
+    filter(`GENOMIC CLUSTER` == cluster)
+
+  # Number of isolates in genomic cluster
+  cluster_size <- cluster_new$`CLUSTER (n=)`[1]
+
+  # ----------------------------------------------------------
+  # Genomic cluster heading
+  # ----------------------------------------------------------
+
+  email_lines <- c(
+    email_lines,
+    paste0(
+      "Genomic Cluster ", cluster,
+      " (n=", cluster_size, ")"
+    ),
+    ""
+  )
+
+  # ----------------------------------------------------------
+  # Check whether this is a newly formed genomic cluster
+  # ----------------------------------------------------------
+
+  new_cluster <- new_clust %>%
+    filter(GENOMIC_CLUSTER == cluster)
+
+  if (nrow(new_cluster) > 0) {
+
+    # This is a newly formed genomic cluster.
+    # List each new sequence in the cluster.
+    new_ids <- cluster_new$ID
+
+    for (new_id in new_ids) {
+
+      email_lines <- c(
+        email_lines,
+        paste0(
+          "The new sequence ", new_id,
+          " is in a newly formed genomic cluster; there are no genomic linkages."
+        )
+      )
+    }
+
+    email_lines <- c(email_lines, "")
+
+    next
+  }
+
+  # ----------------------------------------------------------
+  # Get unique partitions within this genomic cluster
+  # ----------------------------------------------------------
+
+  partitions <- unique(cluster_new$PARTITION)
+  partitions <- partitions[!is.na(partitions)]
+
+  for (partition in partitions) {
+
+    # New sequences in this partition
+    partition_new <- cluster_new %>%
+      filter(PARTITION == partition)
+
+    # Number of isolates in partition
+    partition_size <- partition_new$`PARTITION (n=)`[1]
+
+    # IDs in this partition
+    new_ids <- partition_new$ID
+
+    # --------------------------------------------------------
+    # Partition heading
+    # --------------------------------------------------------
+
+    email_lines <- c(
+      email_lines,
+      paste0(
+        "Partition ", partition,
+        " (n=", partition_size, ")"
+      ),
+      ""
+    )
+
+    # --------------------------------------------------------
+    # Get genomic linkages for new sequences in this partition
+    # --------------------------------------------------------
+
+    cluster_links <- summary_snp_links %>%
+      filter(
+        STATUS == "NEW",
+        ID1 %in% new_ids | ID2 %in% new_ids
+      )
+
+    # --------------------------------------------------------
+    # No Very Strong, Strong, or Intermediate linkages
+    # --------------------------------------------------------
+
+    if (nrow(cluster_links) == 0) {
+
+      for (new_id in new_ids) {
+
+        email_lines <- c(
+          email_lines,
+          paste0(
+            "The new sequence ", new_id,
+            " has no Very Strong, Strong, or Intermediate genomic linkages."
+          )
+        )
+      }
+
+      email_lines <- c(email_lines, "")
+
+      next
+    }
+
+    # --------------------------------------------------------
+    # Identify linkage category for each row
+    # --------------------------------------------------------
+
+    cluster_links <- cluster_links %>%
+      mutate(
+        new_id = if_else(ID1 %in% new_ids, ID1, ID2),
+        linked_id = if_else(ID1 %in% new_ids, ID2, ID1),
+
+        linkage_description = case_when(
+
+          !is.na(VeryStrongGenLinkage) &
+            trimws(VeryStrongGenLinkage) != "" ~
+            "very close genomic linkage",
+
+          !is.na(StrongGenLinkage) &
+            trimws(StrongGenLinkage) != "" ~
+            "close genomic linkage",
+
+          !is.na(InterGenLinkage) &
+            trimws(InterGenLinkage) != "" ~
+            "intermediate genomic linkage",
+
+          TRUE ~ NA_character_
+        )
+      )
+
+    # --------------------------------------------------------
+    # Report Very Strong and Strong linkages individually
+    # --------------------------------------------------------
+
+    individual_links <- cluster_links %>%
+      filter(
+        linkage_description %in% c(
+          "very close genomic linkage",
+          "close genomic linkage"
+        )
+      )
+
+    if (nrow(individual_links) > 0) {
+
+      for (i in seq_len(nrow(individual_links))) {
+
+        link <- individual_links[i, ]
+
+        # Get details for the new sequence
+        new_sequence_details <- summary_table_display %>%
+          filter(`WA ID` == link$new_id)
+
+        # Select facility based on epidemiologic program
+        if (params$epiprogram == "HAI") {
+
+          facility <- new_sequence_details$`Origin Facility`
+          facility_text <- paste0("at ", facility)
+
+        } else {
+
+          facility <- new_sequence_details$`Submitter Facility`
+          facility_text <- paste0("submitted by ", facility)
+
+        }
+
+        email_lines <- c(
+          email_lines,
+          paste0(
+            "The new sequence ", link$new_id,
+            " collected on ", new_sequence_details$`Collection Date`,
+            " from a case who resides in ",
+            new_sequence_details$`Patient County`,
+            " and was ", facility_text,
+            " has a ", link$linkage_description,
+            " (", link$dist, " SNPs) to ",
+            link$linked_id, "."
+          )
+        )
+      }
+    }
+
+    # --------------------------------------------------------
+    # Count Intermediate linkages
+    # --------------------------------------------------------
+
+    intermediate_links <- cluster_links %>%
+      filter(
+        linkage_description == "intermediate genomic linkage"
+      )
+
+    if (nrow(intermediate_links) > 0) {
+
+      # Count intermediate linkages by new sequence
+      intermediate_counts <- intermediate_links %>%
+        count(new_id, name = "n_intermediate")
+
+      for (i in seq_len(nrow(intermediate_counts))) {
+
+        new_id <- intermediate_counts$new_id[i]
+
+        # Get details for the new sequence
+        new_sequence_details <- summary_table_display %>%
+          filter(`WA ID` == new_id)
+
+        # Select facility based on epidemiologic program
+        if (params$epiprogram == "HAI") {
+
+          facility <- new_sequence_details$`Origin Facility`
+          facility_text <- paste0("at ", facility)
+
+        } else {
+
+          facility <- new_sequence_details$`Submitter Facility`
+          facility_text <- paste0("submitted by ", facility)
+
+        }
+
+        email_lines <- c(
+          email_lines,
+          paste0(
+            "The new sequence ", new_id,
+            " collected on ", new_sequence_details$`Collection Date`,
+            " from a case who resides in ",
+            new_sequence_details$`Patient County`,
+            " and was ", facility_text,
+            " has ",
+            intermediate_counts$n_intermediate[i],
+            " intermediate genomic ",
+            ifelse(
+              intermediate_counts$n_intermediate[i] == 1,
+              "linkage",
+              "linkages"
+            ),
+            ". See the attachment for more details."
+          )
+        )
+      }
+    }
+
+    # Blank line between partitions
+    email_lines <- c(email_lines, "")
+  }
+}
+
+# ------------------------------------------------------------
+# Write email to text file
+# ------------------------------------------------------------
+
+writeLines(
+  email_lines,
+  file.path(outputs_script_dir, "email_draft.txt")
+)
+
+```
 
 
 ## Resources

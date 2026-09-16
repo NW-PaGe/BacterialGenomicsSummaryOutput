@@ -806,7 +806,7 @@ for (cluster in genomic_clusters) {
           " was collected on ", new_sequence_details$`Collection Date`,
           " from a case who resides in ",
           new_sequence_details$`Patient County`,
-          " and was ", facility_text, "."
+          " county and was ", facility_text, "."
         )
       )
     }
@@ -952,15 +952,16 @@ for (cluster in genomic_clusters) {
           paste0(
             "- The new sequence ",
             intermediate_counts$new_id[i],
-            " has ",
-            intermediate_counts$n_intermediate[i],
-            " intermediate genomic ",
-            ifelse(
+            " only has intermediate genomic ",
+             ifelse(
               intermediate_counts$n_intermediate[i] == 1,
               "linkage",
               "linkages"
             ),
-            ". See the attachments for more details."
+            " to ",
+            intermediate_counts$n_intermediate[i],
+            " other isolates in this partition. ",
+            "See the attachments for more details."
           )
         )
       }

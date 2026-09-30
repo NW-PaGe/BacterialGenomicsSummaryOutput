@@ -1,4 +1,4 @@
-# This script looks up where new samples have been classified in terms of partition and counts then number of isolates in each partition
+# This script looks up where new samples have been classified in terms of partition and counts the number of isolates in each partition
 # The script compares partitions in both Snippy and Gubbins outputs, if they are the same one table with single columns gets generated otherwise
 # columns for Snippy and Gubbins partitions and counts get output.
 

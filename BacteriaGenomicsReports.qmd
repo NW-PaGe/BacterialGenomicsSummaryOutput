@@ -1094,7 +1094,7 @@ new_minmax <- summary_snp_new_isolates_minmax_selected %>%
         email_lines,
         paste0(
           "- The new sequence ", new_id,
-          " has no genomic linkages."
+          " has no genomic linkages because it is the only isolate in this newly formed genomic cluster."
         )
       )
     }
@@ -1476,7 +1476,7 @@ new_minmax <- summary_snp_new_isolates_minmax_selected %>%
               email_lines,
               paste0(
                 new_id,
-                " has no genomic linkages."
+                " has no genomic linkages because it is the only isolate in this newly formed genomic cluster."
               )
             )
           }

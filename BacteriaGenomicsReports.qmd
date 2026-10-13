@@ -1031,7 +1031,7 @@ for (cluster in genomic_clusters) {
           paste0(
             "- The new sequence ",
             intermediate_counts$new_id[i],
-            " only has intermediate genomic ",
+            " has intermediate genomic ",
              ifelse(
               intermediate_counts$n_intermediate[i] == 1,
               "linkage",

@@ -2,7 +2,7 @@
 title: "Bacterial Genomics - Summary Report - Mock Data"
 date: today
 author: 
-  - name: "Marcela Torres <br> Dahlia Walters <br> Shawn Hawken"
+  - name: "Marcela Torres <br> Dahlia Walters <br> Emily Benedict"
     affiliation: "Molecular Epidemiology Program, WA DOH"
 format: 
   html:

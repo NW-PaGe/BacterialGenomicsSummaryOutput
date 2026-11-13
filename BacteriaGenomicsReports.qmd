@@ -610,6 +610,7 @@ if (nrow(final_metadata) > 0) {kable(final_metadata) %>%
 
 outputs_script_dir <- "outputs_scripts"
 
+if (params$phylogeny != "all") {
 snpminmax_file <- list.files(
   outputs_script_dir,
   pattern = "summary_snp_new_isolates_minmax\\.RData$",
@@ -1126,6 +1127,7 @@ writeLines(
   file.path(outputs_script_dir, email_filename)
 )
 
+}
 ```
 
 
@@ -1133,7 +1135,7 @@ writeLines(
 ```{r draft_HAI_email, include=FALSE}
 # HAI EMAIL
 
-if (params$epiprogram == "HAI") {
+if (params$epiprogram == "HAI" && params$phylogeny != "all") {
 
   # ----------------------------------------------------------
   # Basic information
@@ -1505,7 +1507,8 @@ new_minmax <- summary_snp_new_isolates_minmax_selected %>%
   
   writeLines( email_lines, file.path(outputs_script_dir, email_filename) 
               ) 
-  }
+}
+
 ```
 
 ```
